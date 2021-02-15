@@ -21,7 +21,7 @@ def collect(testcase):
 
     add_step(testcase, setup_mesh, mesh_type=mesh_type)
 
-    for procs in [1, 4]:
+    for procs in [2, 4]:
         name = '{}proc_run'.format(procs)
         add_step(testcase, run_model, name=name, subdir=name, cores=procs,
                  threads=1, mesh_type=mesh_type)
@@ -32,7 +32,7 @@ def collect(testcase):
 
     # we don't want to run the visualize step by default.  The user will do
     # this manually if they want viz
-    testcase['steps_to_run'] = ['setup_mesh', '1proc_run', '4proc_run']
+    testcase['steps_to_run'] = ['setup_mesh', '2proc_run', '4proc_run']
 
 
 # no configure function is needed
@@ -61,7 +61,7 @@ def run(testcase, test_suite, config, logger):
     run_steps(testcase, test_suite, config, logger)
     variables = ['thickness', 'normalVelocity']
     steps = testcase['steps_to_run']
-    if '1proc_run' in steps and '4proc_run' in steps:
+    if '2proc_run' in steps and '4proc_run' in steps:
         compare_variables(variables, config, work_dir=testcase['work_dir'],
-                          filename1='1proc_run/output.nc',
+                          filename1='2proc_run/output.nc',
                           filename2='4proc_run/output.nc')
