@@ -1,7 +1,7 @@
 <streams>
 
 <immutable_stream name="input"
-                  filename_template="landice_grid.nc"/>
+                  filename_template="sw_grid.nc"/>
 
 <immutable_stream name="restart"
                   type="input;output"

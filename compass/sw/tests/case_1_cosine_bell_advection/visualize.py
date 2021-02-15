@@ -56,12 +56,12 @@ def run(step, test_suite, config, logger):
     logger : logging.Logger
         A logger for output from the step
     """
-    visualize_dome(config, logger, filename='output.nc')
+    visualize_case_1_cosine_bell_advection(config, logger, filename='output.nc')
 
 
-def visualize_dome(config, logger, filename='output.nc'):
+def visualize_case_1_cosine_bell_advection(config, logger, filename='output.nc'):
     """
-    Plot the output from a dome test case
+    Plot the output from a case_1_cosine_bell_advection test case
 
     Parameters
     ----------
@@ -75,7 +75,7 @@ def visualize_dome(config, logger, filename='output.nc'):
     filename : str, optional
         file to visualize
     """
-    section = config['dome_viz']
+    section = config['case_1_cosine_bell_advection_viz']
 
     time_slice = section.getint('time_slice')
     save_images = section.getboolean('save_images')
@@ -122,7 +122,7 @@ def visualize_dome(config, logger, filename='output.nc'):
     plt.draw()
     if save_images:
         logger.info("Saving figures to files.")
-        plt.savefig('dome_thickness.png')
+        plt.savefig('case_1_cosine_bell_advection_thickness.png')
 
     fig = plt.figure(2)
     fig.add_subplot(121, aspect='equal')
@@ -138,7 +138,7 @@ def visualize_dome(config, logger, filename='output.nc'):
     plt.title('upper surface at time {}'.format(time_slice))
     plt.draw()
     if save_images:
-        plt.savefig('dome_surfaces.png')
+        plt.savefig('case_1_cosine_bell_advection_surfaces.png')
 
     fig = plt.figure(3)
     for templevel in range(0, vert_levs):
@@ -152,7 +152,7 @@ def visualize_dome(config, logger, filename='output.nc'):
                                                               time_slice))
         plt.draw()
     if save_images:
-        plt.savefig('dome_temperature.png')
+        plt.savefig('case_1_cosine_bell_advection_temperature.png')
 
     fig = plt.figure(4)
     fig.add_subplot(121, aspect='equal')
@@ -178,7 +178,7 @@ def visualize_dome(config, logger, filename='output.nc'):
     plt.title('normalVelocity of top layer at time {}'.format(time_slice))
     plt.draw()
     if save_images:
-        plt.savefig('dome_normalVelocity.png')
+        plt.savefig('case_1_cosine_bell_advection_normalVelocity.png')
 
     fig = plt.figure(5, facecolor='w')
     fig.add_subplot(121, aspect='equal')
@@ -200,7 +200,7 @@ def visualize_dome(config, logger, filename='output.nc'):
     plt.title('uReconstructY of top layer at time {}'.format(time_slice))
     plt.draw()
     if save_images:
-        plt.savefig('dome_uReconstruct.png')
+        plt.savefig('case_1_cosine_bell_advection_uReconstruct.png')
 
     if hide_figs:
         logger.info("Plot display disabled with hide_plot config option.")

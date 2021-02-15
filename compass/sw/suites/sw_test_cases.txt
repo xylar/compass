@@ -1,0 +1,3 @@
+tests/case_1_cosine_bell_advection/smoke_test
+tests/case_1_cosine_bell_advection/decomposition_test
+tests/case_1_cosine_bell_advection/restart_test

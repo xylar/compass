@@ -2,7 +2,7 @@ from compass.testcase import set_testcase_subdir, add_step, run_steps
 from compass.validate import compare_variables
 from compass.namelist import add_namelist_file
 from compass.streams import add_streams_file
-from compass.landice.tests.dome import setup_mesh, run_model, visualize
+from compass.sw.tests.case_1_cosine_bell_advection import setup_mesh, run_model, visualize
 
 
 def collect(testcase):
@@ -15,7 +15,7 @@ def collect(testcase):
         A dictionary of properties of this test case, which can be updated
     """
     mesh_type = testcase['mesh_type']
-    testcase['description'] = 'dome - {} - restart test'.format(
+    testcase['description'] = 'case_1_cosine_bell_advection - {} - restart test'.format(
         mesh_type.replace('_', ' '))
 
     subdir = '{}/{}'.format(mesh_type, testcase['name'])
@@ -29,11 +29,11 @@ def collect(testcase):
 
     # modify the namelist options and streams file
     add_namelist_file(
-        step, 'compass.landice.tests.dome.restart_test',
-        'namelist.full', out_name='namelist.landice')
+        step, 'compass.sw.tests.case_1_cosine_bell_advection.restart_test',
+        'namelist.full', out_name='namelist.sw')
     add_streams_file(
-        step, 'compass.landice.tests.dome.restart_test',
-        'streams.full', out_name='streams.landice')
+        step, 'compass.sw.tests.case_1_cosine_bell_advection.restart_test',
+        'streams.full', out_name='streams.sw')
 
     input_dir = name
     name = 'visualize_{}'.format(name)
@@ -43,22 +43,22 @@ def collect(testcase):
     name = 'restart_run'
     step = add_step(testcase, run_model, name=name, subdir=name, cores=4,
                     threads=1, mesh_type=mesh_type,
-                    suffixes=['landice', 'landice.rst'])
+                    suffixes=['sw', 'sw.rst'])
 
     # modify the namelist options and streams file
     add_namelist_file(
-        step, 'compass.landice.tests.dome.restart_test',
-        'namelist.restart', out_name='namelist.landice')
+        step, 'compass.sw.tests.case_1_cosine_bell_advection.restart_test',
+        'namelist.restart', out_name='namelist.sw')
     add_streams_file(
-        step, 'compass.landice.tests.dome.restart_test',
-        'streams.restart', out_name='streams.landice')
+        step, 'compass.sw.tests.case_1_cosine_bell_advection.restart_test',
+        'streams.restart', out_name='streams.sw')
 
     add_namelist_file(
-        step, 'compass.landice.tests.dome.restart_test',
-        'namelist.restart.rst', out_name='namelist.landice.rst')
+        step, 'compass.sw.tests.case_1_cosine_bell_advection.restart_test',
+        'namelist.restart.rst', out_name='namelist.sw.rst')
     add_streams_file(
-        step, 'compass.landice.tests.dome.restart_test',
-        'streams.restart.rst', out_name='streams.landice.rst')
+        step, 'compass.sw.tests.case_1_cosine_bell_advection.restart_test',
+        'streams.restart.rst', out_name='streams.sw.rst')
 
     input_dir = name
     name = 'visualize_{}'.format(name)

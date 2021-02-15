@@ -1,5 +1,5 @@
 from compass.testcase import add_testcase
-from compass.landice.tests.dome import smoke_test, decomposition_test, \
+from compass.landice.tests.case_1_cosine_bell_advection import smoke_test, decomposition_test, \
     restart_test
 
 

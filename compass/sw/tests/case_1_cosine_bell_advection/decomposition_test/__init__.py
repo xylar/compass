@@ -1,6 +1,6 @@
 from compass.testcase import add_step, run_steps, set_testcase_subdir
 from compass.validate import compare_variables
-from compass.landice.tests.dome import setup_mesh, run_model, visualize
+from compass.sw.tests.case_1_cosine_bell_advection import setup_mesh, run_model, visualize
 
 
 def collect(testcase):
@@ -14,7 +14,7 @@ def collect(testcase):
     """
     mesh_type = testcase['mesh_type']
     testcase['description'] = \
-        'dome - {} - decomposition test'.format(mesh_type.replace('_', ' '))
+        'case_1_cosine_bell_advection - {} - decomposition test'.format(mesh_type.replace('_', ' '))
 
     subdir = '{}/{}'.format(mesh_type, testcase['name'])
     set_testcase_subdir(testcase, subdir)

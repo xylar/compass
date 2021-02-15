@@ -18,26 +18,26 @@ def collect(testcase, step):
         A dictionary of properties of this step, which can be updated
     """
     defaults = dict(max_memory=1000, max_disk=1000, threads=1,
-                    suffixes=['landice'])
+                    suffixes=['sw'])
     for key, value in defaults.items():
         step.setdefault(key, value)
 
     step.setdefault('min_cores', step['cores'])
 
-    # most runs will just have a namelist.landice and a streams.landice but
+    # most runs will just have a namelist.sw and a streams.sw but
     # the restart_run step of the restart_test runs the model twice, the second
-    # time with namelist.landice.rst and streams.landice.rst
+    # time with namelist.sw.rst and streams.sw.rst
     for suffix in step['suffixes']:
         add_namelist_file(
-            step, 'compass.landice.tests.dome', 'namelist.landice',
+            step, 'compass.sw.tests.case_1_cosine_bell_advection', 'namelist.sw',
             out_name='namelist.{}'.format(suffix))
 
         add_streams_file(
-            step, 'compass.landice.tests.dome', 'streams.landice',
+            step, 'compass.sw.tests.case_1_cosine_bell_advection', 'streams.sw',
             out_name='streams.{}'.format(suffix))
 
-    add_input_file(step, filename='landice_grid.nc',
-                   target='../setup_mesh/landice_grid.nc')
+    add_input_file(step, filename='sw_grid.nc',
+                   target='../setup_mesh/sw_grid.nc')
     add_input_file(step, filename='graph.info',
                    target='../setup_mesh/graph.info')
 
@@ -58,9 +58,9 @@ def setup(step, config):
         Configuration options for this test case, a combination of the defaults
         for the machine, core, configuration and test case
     """
-    # again, most runs will just have a namelist.landice and a streams.landice
+    # again, most runs will just have a namelist.sw and a streams.sw
     # but the restart_run step of the restart_test runs the model twice, the
-    # second time with namelist.landice.rst and streams.landice.rst
+    # second time with namelist.sw.rst and streams.sw.rst
     for suffix in step['suffixes']:
         generate_namelist(step, config, out_name='namelist.{}'.format(suffix))
         generate_streams(step, config, out_name='streams.{}'.format(suffix))
@@ -89,9 +89,9 @@ def run(step, test_suite, config, logger):
         A logger for output from the step
     """
 
-    # again, most runs will just have a namelist.landice and a streams.landice
+    # again, most runs will just have a namelist.sw and a streams.sw
     # but the restart_run step of the restart_test runs the model twice, the
-    # second time with namelist.landice.rst and streams.landice.rst
+    # second time with namelist.sw.rst and streams.sw.rst
     for suffix in step['suffixes']:
         run_model(step, config, logger, namelist='namelist.{}'.format(suffix),
                   streams='streams.{}'.format(suffix))

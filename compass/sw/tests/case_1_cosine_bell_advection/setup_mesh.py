@@ -34,10 +34,10 @@ def collect(testcase, step):
         # download and link the mesh
 
         add_input_file(step, filename='mpas_grid.nc',
-                       target='dome_varres_grid.nc', database='')
+                       target='case_1_cosine_bell_advection_varres_grid.nc', database='')
 
     add_output_file(step, filename='graph.info')
-    add_output_file(step, filename='landice_grid.nc')
+    add_output_file(step, filename='sw_grid.nc')
 
 
 # no setup function is needed
@@ -64,7 +64,7 @@ def run(step, test_suite, config, logger):
         A logger for output from the step
    """
     mesh_type = step['mesh_type']
-    section = config['dome']
+    section = config['case_1_cosine_bell_advection']
 
     if mesh_type == '2000m':
         nx = section.getint('nx')
@@ -81,20 +81,20 @@ def run(step, test_suite, config, logger):
         write_netcdf(dsMesh, 'mpas_grid.nc')
 
     levels = section.getfloat('levels')
-    args = ['create_landice_grid_from_generic_MPAS_grid.py',
+    args = ['create_sw_grid_from_generic_MPAS_grid.py',
             '-i', 'mpas_grid.nc',
-            '-o', 'landice_grid.nc',
+            '-o', 'sw_grid.nc',
             '-l', levels]
 
     check_call(args, logger)
 
-    make_graph_file(mesh_filename='landice_grid.nc',
+    make_graph_file(mesh_filename='sw_grid.nc',
                     graph_filename='graph.info')
 
-    _setup_dome_initial_conditions(config, logger, filename='landice_grid.nc')
+    _setup_case_1_cosine_bell_advection_initial_conditions(config, logger, filename='sw_grid.nc')
 
 
-def _setup_dome_initial_conditions(config, logger, filename='landice_grid.nc'):
+def _setup_case_1_cosine_bell_advection_initial_conditions(config, logger, filename='sw_grid.nc'):
     """
     Add the initial condition to the given MPAS mesh file
 
@@ -108,10 +108,10 @@ def _setup_dome_initial_conditions(config, logger, filename='landice_grid.nc'):
         A logger for output from the step
 
     filename : str, optional
-        file to setup dome
+        file to setup case_1_cosine_bell_advection
     """
-    section = config['dome']
-    dome_type = section.get('dome_type')
+    section = config['case_1_cosine_bell_advection']
+    case_1_cosine_bell_advection_type = section.get('case_1_cosine_bell_advection_type')
     put_origin_on_a_cell = section.getboolean('put_origin_on_a_cell')
     shelf = section.getboolean('shelf')
     hydro = section.getboolean('hyrdo')
@@ -134,11 +134,11 @@ def _setup_dome_initial_conditions(config, logger, filename='landice_grid.nc'):
     # Find center of domain
     x0 = xCell[:].min() + 0.5 * (xCell[:].max() - xCell[:].min())
     y0 = yCell[:].min() + 0.5 * (yCell[:].max() - yCell[:].min())
-    # Calculate distance of each cell center from dome center
+    # Calculate distance of each cell center from case_1_cosine_bell_advection center
     r = ((xCell[:] - x0) ** 2 + (yCell[:] - y0) ** 2) ** 0.5
 
     if put_origin_on_a_cell:
-        # Center the dome in the center of the cell that is closest to the center
+        # Center the case_1_cosine_bell_advection in the center of the cell that is closest to the center
         # of the domain.
         centerCellIndex = numpy.abs(r[:]).argmin()
         xShift = -1.0 * xCell[centerCellIndex]
@@ -154,22 +154,22 @@ def _setup_dome_initial_conditions(config, logger, filename='landice_grid.nc'):
         y0 = 0.0
         r = ((xCell[:] - x0) ** 2 + (yCell[:] - y0) ** 2) ** 0.5
 
-    # Assign variable values for dome
-    # Define dome dimensions - all in meters
+    # Assign variable values for case_1_cosine_bell_advection
+    # Define case_1_cosine_bell_advection dimensions - all in meters
     r0 = 60000.0 * numpy.sqrt(0.125)
     h0 = 2000.0 * numpy.sqrt(0.125)
-    # Set default value for non-dome cells
+    # Set default value for non-case_1_cosine_bell_advection cells
     thickness[:] = 0.0
-    # Calculate the dome thickness for cells within the desired radius
+    # Calculate the case_1_cosine_bell_advection thickness for cells within the desired radius
     # (thickness will be NaN otherwise)
     thickness_field = thickness[0, :]
-    if dome_type == 'cism':
+    if case_1_cosine_bell_advection_type == 'cism':
         thickness_field[r < r0] = h0 * (1.0 - (r[r < r0] / r0) ** 2) ** 0.5
-    elif dome_type == 'halfar':
+    elif case_1_cosine_bell_advection_type == 'halfar':
         thickness_field[r < r0] = h0 * (
                     1.0 - (r[r < r0] / r0) ** (4.0 / 3.0)) ** (3.0 / 7.0)
     else:
-        raise ValueError('Unexpected dome_type: {}'.format(dome_type))
+        raise ValueError('Unexpected case_1_cosine_bell_advection_type: {}'.format(case_1_cosine_bell_advection_type))
     thickness[0, :] = thickness_field
 
     # zero velocity everywhere
@@ -204,5 +204,5 @@ def _setup_dome_initial_conditions(config, logger, filename='landice_grid.nc'):
 
     gridfile.close()
 
-    logger.info('Successfully added dome initial conditions to: {}'.format(
+    logger.info('Successfully added case_1_cosine_bell_advection initial conditions to: {}'.format(
         filename))

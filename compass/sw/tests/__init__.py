@@ -1,4 +1,4 @@
-from compass.landice.tests import dome, enthalpy_benchmark
+from compass.sw.tests import dome, enthalpy_benchmark
 
 
 def collect():
