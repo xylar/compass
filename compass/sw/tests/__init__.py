@@ -1,4 +1,4 @@
-from compass.sw.tests import dome, enthalpy_benchmark
+from compass.sw.tests import case_1_cosine_bell_advection
 
 
 def collect():
@@ -12,7 +12,7 @@ def collect():
 
     """
     testcases = list()
-    for configuration in [dome, enthalpy_benchmark]:
+    for configuration in [case_1_cosine_bell_advection]:
         testcases.extend(configuration.collect())
 
     return testcases

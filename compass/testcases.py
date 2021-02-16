@@ -4,6 +4,7 @@ import sys
 from compass.examples import tests as example_tests
 from compass.landice import tests as landice_tests
 from compass.ocean import tests as ocean_tests
+from compass.sw import tests as sw_tests
 
 
 def collect():
@@ -18,7 +19,7 @@ def collect():
 
     testcase_list = list()
 
-    for tests in [example_tests, landice_tests, ocean_tests]:
+    for tests in [example_tests, landice_tests, ocean_tests, sw_tests]:
         testcase_list.extend(tests.collect())
 
     validate(testcase_list)
