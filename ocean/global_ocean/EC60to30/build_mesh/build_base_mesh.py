@@ -20,8 +20,8 @@ def cellWidthVsLatLon():
             longitude, vector of length n, with entries between -180 and 180,
             degrees
     """
-    lat = np.arange(-90, 90.01, 0.1)
-    lon = np.arange(-180, 180.01, 10.0)
+    lat = np.arange(-89.975, 90.0, 0.05)
+    lon = np.arange(-179.975, 180.0, 0.05)
 
     cellWidthVsLat = mdt.EC_CellWidthVsLat(lat)
     cellWidth = np.outer(cellWidthVsLat, np.ones([1, lon.size]))

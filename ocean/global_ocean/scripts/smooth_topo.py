@@ -37,6 +37,12 @@ def remap_widths_to_topo_grid(dsWidth, dsTopo, mpiTasks):
     _add_degrees(dsWidth)
     inDescriptor = LatLonGridDescriptor.read(ds=dsWidth)
     outDescriptor = LatLonGridDescriptor.read(ds=dsTopo)
+    if inDescriptor.meshName == outDescriptor.meshName:
+        # print(numpy.amax(numpy.abs(dsTopo.lat.values - dsWidth.lat.values)))
+        # print(numpy.amax(numpy.abs(dsTopo.lon.values - dsWidth.lon.values)))
+        dsWidth['lat'] = dsTopo.lat
+        dsWidth['lon'] = dsTopo.lon
+        return dsWidth
     mappingFileName = 'map_{}_to_{}_bilinear.nc'.format(inDescriptor.meshName,
                                                         outDescriptor.meshName)
 
