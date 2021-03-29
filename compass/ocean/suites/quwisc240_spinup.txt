@@ -1,4 +1,5 @@
 ocean/global_ocean/QUwISC240/mesh
+ocean/global_ocean/QUwISC240/prescribed_ice_shelf_melt
 ocean/global_ocean/QUwISC240/PHC/init
 ocean/global_ocean/QUwISC240/PHC/spinup
 ocean/global_ocean/QUwISC240/PHC/files_for_e3sm

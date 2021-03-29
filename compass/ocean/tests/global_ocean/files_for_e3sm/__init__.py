@@ -7,7 +7,7 @@ from compass.ocean.tests import global_ocean
 from compass.io import symlink
 from compass.ocean.tests.global_ocean.files_for_e3sm import \
     ocean_initial_condition, ocean_graph_partition, seaice_initial_condition, \
-    scrip, diagnostics_files
+    scrip, diagnostics_files, prescribed_ice_shelf_melt
 
 
 def collect(testcase):
@@ -54,6 +54,10 @@ def collect(testcase):
     add_step(testcase, diagnostics_files, mesh_name=mesh_name,
              restart_filename=restart_filename,
              with_ice_shelf_cavities=with_ice_shelf_cavities)
+
+    if with_ice_shelf_cavities:
+        add_step(testcase, prescribed_ice_shelf_melt, mesh_name=mesh_name,
+                 restart_filename=restart_filename)
 
 
 def configure(testcase, config):

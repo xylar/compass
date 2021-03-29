@@ -1,4 +1,5 @@
 ocean/global_ocean/ECwISC30to60/mesh
+ocean/global_ocean/ECwISC30to60/prescribed_ice_shelf_melt
 ocean/global_ocean/ECwISC30to60/PHC/init
 ocean/global_ocean/ECwISC30to60/PHC/performance_test
 ocean/global_ocean/ECwISC30to60/PHC/spinup
