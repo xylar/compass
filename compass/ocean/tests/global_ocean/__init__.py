@@ -29,10 +29,6 @@ def collect():
         add_testcase(testcases, mesh, mesh_name=mesh_name,
                      with_ice_shelf_cavities=with_ice_shelf_cavities)
 
-        if with_ice_shelf_cavities:
-            add_testcase(testcases, prescribed_ice_shelf_melt,
-                         mesh_name=mesh_name)
-
         initial_condition = 'PHC'
         with_bgc = False
         time_integrator = 'split_explicit'
@@ -47,6 +43,12 @@ def collect():
                 with_ice_shelf_cavities=with_ice_shelf_cavities,
                 initial_condition=initial_condition,
                 with_bgc=with_bgc, time_integrator=time_integrator)
+
+        if with_ice_shelf_cavities:
+            add_testcase(testcases, prescribed_ice_shelf_melt,
+                         mesh_name=mesh_name,
+                         initial_condition=initial_condition,
+                         with_bgc=with_bgc, time_integrator=time_integrator)
 
         testcase = add_testcase(
             testcases, qu240_spinup, mesh_name=mesh_name,
@@ -83,6 +85,11 @@ def collect():
                      initial_condition=initial_condition,
                      with_bgc=with_bgc,
                      time_integrator=time_integrator)
+        if with_ice_shelf_cavities:
+            add_testcase(testcases, prescribed_ice_shelf_melt,
+                         mesh_name=mesh_name,
+                         initial_condition=initial_condition,
+                         with_bgc=with_bgc, time_integrator=time_integrator)
         testcase = add_testcase(
             testcases, qu240_spinup, mesh_name=mesh_name,
             with_ice_shelf_cavities=with_ice_shelf_cavities,
@@ -116,10 +123,6 @@ def collect():
         add_testcase(testcases, mesh, mesh_name=mesh_name,
                      with_ice_shelf_cavities=with_ice_shelf_cavities)
 
-        if with_ice_shelf_cavities:
-            add_testcase(testcases, prescribed_ice_shelf_melt,
-                         mesh_name=mesh_name)
-
         for initial_condition in ['PHC', 'EN4_1900']:
             with_bgc = False
             time_integrator = 'split_explicit'
@@ -131,6 +134,14 @@ def collect():
                          with_ice_shelf_cavities=with_ice_shelf_cavities,
                          initial_condition=initial_condition,
                          with_bgc=with_bgc, time_integrator=time_integrator)
+
+            if with_ice_shelf_cavities:
+                add_testcase(testcases, prescribed_ice_shelf_melt,
+                             mesh_name=mesh_name,
+                             initial_condition=initial_condition,
+                             with_bgc=with_bgc,
+                             time_integrator=time_integrator)
+
             testcase = add_testcase(
                 testcases, ec30to60_spinup, mesh_name=mesh_name,
                 with_ice_shelf_cavities=with_ice_shelf_cavities,
