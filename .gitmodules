@@ -1,3 +1,6 @@
 [submodule "MPAS-Model/landice/develop"]
 	path = MPAS-Model/landice/develop
 	url = git@github.com:MPAS-Dev/MPAS-Model.git
+[submodule "E3SM"]
+	path = E3SM
+	url = git@github.com:mark-petersen/E3SM.git
