@@ -1,6 +1,7 @@
 import numpy
 from netCDF4 import Dataset as NetCDFFile
 import shutil
+from importlib.resources import path
 
 from mpas_tools.logging import check_call
 
@@ -91,6 +92,11 @@ class RunExperiment(Step):
 
         self.add_input_file(filename='graph.info',
                             target='../setup_mesh/graph.info')
+
+        with path('compass.landice.tests.eismint2',
+                  'visualize_output_EISMINT2.py') as target:
+            self.add_input_file(filename='visualize_output_EISMINT2.py',
+                                target=str(target))
 
         self.add_output_file(filename='output.nc')
 
