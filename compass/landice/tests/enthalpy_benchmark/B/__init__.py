@@ -29,8 +29,12 @@ class B(TestCase):
 
         self.add_step(
             SetupMesh(test_case=self))
-        self.add_step(
-            RunModel(test_case=self, name='run_model', cores=1, threads=1))
+        step = RunModel(test_case=self, name='run_model', cores=1, threads=1)
+        with path('compass.landice.tests.enthalpy_benchmark.B',
+                  'plot_enthalpy_benchmark_B.py') as target:
+            step.add_input_file(filename='plot_enthalpy_benchmark_B.py',
+                                target=str(target))
+        self.add_step(step)
         self.add_step(
             Visualize(test_case=self))
 

@@ -43,7 +43,14 @@ class A(TestCase):
             suffix = 'landice{}'.format(index+1)
             step.add_namelist_file(module, 'namelist.{}'.format(suffix))
             step.add_streams_file(module, 'streams.{}'.format(suffix))
+
+            with path('compass.landice.tests.enthalpy_benchmark.A',
+                      'plot_enthalpy_benchmark_A.py') as target:
+                step.add_input_file(filename='plot_enthalpy_benchmark_A.py',
+                                    target=str(target))
+
             self.add_step(step)
+
 
         self.add_step(
             Visualize(test_case=self))
