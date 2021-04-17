@@ -1,3 +1,5 @@
+from importlib.resources import path
+
 from compass.model import run_model
 from compass.step import Step
 
@@ -80,6 +82,11 @@ class RunModel(Step):
                             target='../setup_mesh/landice_grid.nc')
         self.add_input_file(filename='graph.info',
                             target='../setup_mesh/graph.info')
+
+        with path('compass.landice.tests.dome',
+                  'visualize_dome.py') as target:
+            self.add_input_file(filename='visualize_dome.py',
+                                target=str(target))
 
         self.add_output_file(filename='output.nc')
 
