@@ -184,11 +184,11 @@ def write_scrip_files(lon_lat_filename, mpas_mesh_filename, mpas_mesh_name,
         An object that describes the MPAS mesh
     """
     src_descriptor = LatLonGridDescriptor.read(lon_lat_filename)
-    src_descriptor.to_scrip('src_scrip.nc')
+    src_descriptor.to_scrip(src_scrip_filename)
 
     dst_descriptor = MpasMeshDescriptor(mpas_mesh_filename,
                                         meshName=mpas_mesh_name)
-    dst_descriptor.to_scrip('dst_scrip.nc')
+    dst_descriptor.to_scrip(dst_scrip_filename)
 
     return src_descriptor, dst_descriptor
 
@@ -348,7 +348,6 @@ def main():
         south_res = mesh_info['south_res']
         mpi_tasks = mesh_info['mpi_tasks']
 
-
         # create a directory of the mesh (if it doesn't already exist) and
         # go into that directory
         base_directory = f'{north_res}_to_{south_res}'
@@ -432,7 +431,6 @@ def main():
                     mesh_filename=mesh_filename,
                     out_dir='vtk_cosine_bell')
 
-
         # go back to the original directory
         os.chdir(cwd)
 
@@ -449,12 +447,12 @@ def main():
         inputs[mpas_mesh_name] = dict()
 
         mesh_filename = f'mesh_{mpas_mesh_name}.nc'
-        inputs[mpas_mesh_name] ['mesh'] = mesh_filename
+        inputs[mpas_mesh_name]['mesh'] = mesh_filename
         symlink(os.path.join('..', outputs[mpas_mesh_name]['mesh']),
                 mesh_filename)
 
         mpas_filename = f'cosine_bell_{mpas_mesh_name}.nc'
-        inputs[mpas_mesh_name] ['cosine_bell'] = mpas_filename
+        inputs[mpas_mesh_name]['cosine_bell'] = mpas_filename
         symlink(os.path.join('..', outputs[mpas_mesh_name]['cosine_bell']),
                 mpas_filename)
 
