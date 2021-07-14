@@ -19,8 +19,10 @@ matplotlib-base
 metis
 mpas_tools=0.8.0
 nco
+ndcctools
 netcdf4=*=nompi_*
 numpy
+parsl
 progressbar2
 pyamg
 pyremap>=0.0.13,<0.1.0
