@@ -5,6 +5,7 @@ import numpy as np
 import xarray
 import subprocess
 import matplotlib.pyplot as plt
+import argparse
 from mpas_tools.io import write_netcdf
 from mpas_tools.ocean import build_spherical_mesh
 from mpas_tools.cime.constants import constants
@@ -233,7 +234,7 @@ def build_mapping_file(src_filename, dst_filename, mapping_filename,
 
 
 def remap_cosine_bell(src_filename, dst_filename, mapping_filename,
-                      renormalize=None):
+                      renormalize=None, parallel_executable=None):
     """
     Call ``ncremap`` to remap data from the source grid to the destination mesh
     using the interpolation weights from the mapping file
@@ -251,9 +252,16 @@ def remap_cosine_bell(src_filename, dst_filename, mapping_filename,
 
     renormalize : float, optional
         A threshold to use to renormalize the data
+
+    parallel_executable : list, optional
+        Command-line arguments to prepend to the ``ncreamp`` call
     """
-    args = ['ncremap', '-m', mapping_filename,
-            '-R', '--rgr col_nm=nCells']
+    args = list()
+    if parallel_executable is not None:
+        args.extend(parallel_executable)
+
+    args.extend(['ncremap', '-m', mapping_filename,
+                 '-R', '--rgr col_nm=nCells'])
 
     if renormalize is not None:
         args.append(f'--renormalize={renormalize}')
@@ -305,6 +313,26 @@ def plot_area_weighted_sum(inputs, show=True):
 
 
 def main():
+
+    parser = argparse.ArgumentParser(
+        description='A test that we plant to port to Parsl')
+    parser.add_argument("--max_cores", dest="max_cores", type=int, default=4,
+                        help="The maximum number of cores to run on")
+    parser.add_argument("--slurm", dest="slurm", action="store_true",
+                        help="Use this flag if running on a machine with slurm")
+    args = parser.parse_args()
+
+    max_cores = args.max_cores
+
+    if args.slurm:
+        parallel_executable = 'srun'
+        ncremap_par_exec = ['srun', '-n', '1']
+        show_plot = False
+    else:
+        parallel_executable = 'mpirun'
+        ncremap_par_exec = None
+        show_plot = True
+
     # Write out a file with the cosine bell function on a lon/lat grid
     lon_lat_filename = 'cosine_bell.nc'
     build_cosine_bell_map(lon_lat_filename, lon_center=0., radius=5e6)
@@ -334,7 +362,22 @@ def main():
          'mpi_tasks': 4},
         {'north_res': 240,
          'south_res': 60,
-         'mpi_tasks': 4}]
+         'mpi_tasks': 4},
+        {'north_res': 120,
+         'south_res': 30,
+         'mpi_tasks': 16},
+        {'north_res': 60,
+         'south_res': 15,
+         'mpi_tasks': 64}]
+
+    # only keep the configurations that we can afford with the number of cores
+    # we have
+    meshes_to_use = list()
+    for mesh in meshes:
+        if mesh['mpi_tasks'] <= max_cores:
+            meshes_to_use.append(mesh)
+
+    meshes = meshes_to_use
 
     # store the directory we start in so we can come back to it
     cwd = os.getcwd()
@@ -403,7 +446,8 @@ def main():
             f'map_{lon_lat_grid_name}_to_{mpas_mesh_name}.nc'
         build_mapping_file(src_scrip_filename, dst_scrip_filename,
                            mapping_filename, method='bilinear',
-                           parallel_executable='mpirun', mpi_tasks=mpi_tasks)
+                           parallel_executable=parallel_executable,
+                           mpi_tasks=mpi_tasks)
 
         os.chdir('..')
 
@@ -423,7 +467,8 @@ def main():
         outputs[mpas_mesh_name]['cosine_bell'] = \
             os.path.join(base_directory, directory, mpas_filename)
         remap_cosine_bell(lon_lat_filename, mpas_filename, mapping_filename,
-                          renormalize=0.01)
+                          renormalize=0.01,
+                          parallel_executable=ncremap_par_exec)
 
         extract_vtk(ignore_time=True,
                     variable_list=['cosineBell', 'areaCell', 'cellQuality'],
@@ -456,7 +501,7 @@ def main():
         symlink(os.path.join('..', outputs[mpas_mesh_name]['cosine_bell']),
                 mpas_filename)
 
-    plot_area_weighted_sum(inputs)
+    plot_area_weighted_sum(inputs, show=show_plot)
 
     os.chdir(cwd)
 
