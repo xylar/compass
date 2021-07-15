@@ -410,6 +410,7 @@ def main():
         # build the MPAS mesh and store it in 'mesh.nc'
         mesh_filename = 'mesh.nc'
         mpas_mesh_name = f'MPAS{north_res}to{south_res}km'
+        print(f'Generating: {mpas_mesh_name}')
         outputs[mpas_mesh_name] = dict()
         outputs[mpas_mesh_name]['mesh'] = \
             os.path.join(base_directory, directory, mesh_filename)
