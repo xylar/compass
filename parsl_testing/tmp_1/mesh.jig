@@ -1,0 +1,10 @@
+# mesh.jig config. file; created by JIGSAW's PYTHON interface 
+  VERBOSITY=1
+  GEOM_FILE=mesh.msh
+  HFUN_FILE=mesh-HFUN.msh
+  HFUN_SCAL=absolute
+  HFUN_HMAX=inf
+  HFUN_HMIN=0.0
+  MESH_FILE=mesh-MESH.msh
+  MESH_DIMS=2
+  OPTM_QLIM=0.9375
