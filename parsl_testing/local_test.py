@@ -15,7 +15,7 @@ import pandas as pd
 import multiprocessing
 
 
-# borrowed from PARSL tutorials to parse WQEX logfiles
+# borrowed from Parsl tutorials to parse WQEX logfiles
 def parse_logs():
     """
     Parse the resource assignment of Work Queue from the runinfo logs
@@ -52,25 +52,34 @@ def parse_logs():
     return df
 
 
-# App that generates a random number after a delay
+# Example task generator app that runs MPAS-Tools to generate MPAS
 @python_app
 def generate(task, path):
-    #parsl_resource_specification={'cores': 1}):
+   #parsl_resource_specification={'cores': 1}):
     
     import numpy as np
     from mpas_tools.cime.constants import constants
-    import mpas_tools.mesh.creation.build_mesh as mesh
+   #import mpas_tools.mesh.creation.build_mesh as mesh
     import os
     import shutil
+  
+    # workaround: issues with tmp dir.'s in MPAS-Tools 
+    # should make a PR into MPAS-Tools that cleans up its use of
+    # tmp files + diectories, etc
+    import sys
+    sys.path.append(path)  # tries to load our local MPAS-Tools
+    from build_mesh import build_spherical_mesh
     
+    # create a local mesh file name with the task number appended
     mesh_file = f"base_mesh_{task}.nc"
-    mesh_file = os.path.join(path, "tmp", mesh_file)
+    mesh_file = os.path.join(path, mesh_file)
 
+    # create a local temp directory, for task-local scratch space
     temp_path = f"tmp_{task}"
     temp_path = os.path.join(path, temp_path)
 
-    this_path = os.getcwd()
-
+    # create mesh "resolution-pattern" - how long should triangle
+    # edges be over the longitude-latitude domain?
     row = 180
     col = 360
 
@@ -78,30 +87,36 @@ def generate(task, path):
     lat = np.linspace(-90.0, +90.0, row)
 
     cellWidth = 480. * np.ones((row, col), dtype=np.float64)
-    cellWidth = cellWidth / (task + 1)
+    cellWidth = cellWidth / (task + 1)  # refine with task number
 
-    radius = constants["SHR_CONST_REARTH"] / 1.E+003
+    radius = constants["SHR_CONST_REARTH"]  # earth radius
 
+    # clean-up any existing tmp dir and make new task-local space
     shutil.rmtree(temp_path, ignore_errors=True)
     os.mkdir(temp_path)
-    os.chdir(temp_path)  # workaround
-
-    mesh.build_spherical_mesh(
+    
+    # call MPAS-Tools to generate the actual mesh!
+    build_spherical_mesh(
         cellWidth, lon, lat, radius,
         out_filename=mesh_file, 
         plot_cellWidth=False, 
-       #dir=os.path.join(path, "tmp")  # this doesn't seem to be working
+        dir=temp_path
     )
- 
-    os.chdir(this_path)  # workaround
 
+    # could try to delete any tmp dir.'s here, and clean-up after
+    # overselves...
+    
     return task
 
 
 if __name__ == '__main__':
-    print("cpu cores:", multiprocessing.cpu_count())
+    
+    # uncomment Parsl config. of your choice!
+    # on my local machine, WQEX seems not to run in parallel across threads
+    # do we need to set a config option here?
 
     """
+    print("WQEX: local_provider")
     config = Config(    
         executors=[
             WorkQueueExecutor(
@@ -114,10 +129,11 @@ if __name__ == '__main__':
     )
     """
 
+    print("THPEX - cpu cores:", multiprocessing.cpu_count())
     config = Config(
         executors=[
             ThreadPoolExecutor(
-                max_threads=8,
+                max_threads=multiprocessing.cpu_count(),
                 label='local_threads'
             )
         ]
@@ -125,14 +141,14 @@ if __name__ == '__main__':
 
     HERE = os.path.abspath(os.path.dirname(__file__))
 
-    # load the Parsl config
+    # Load the Parsl config
     dfk = parsl.load(config)
 
     start = time.time()
 
-    # Generate 16 random numbers between 1 and 10
+    # Generate a range of separate tasks
     task_list = []
-    for i in range(2):
+    for i in range(3):
         task_list.append(generate(i, HERE))
 
     # Wait for all apps to finish and collect the results
@@ -143,7 +159,8 @@ if __name__ == '__main__':
 
     print(f'Task finished in {time.time() - start} seconds')
 
-   #print(parse_logs())
+    # Only for WQEX
+    #print(parse_logs())
 
     dfk.cleanup()
     parsl.clear()
