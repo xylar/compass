@@ -3,6 +3,7 @@ import sys
 import configparser
 import os
 import pickle
+import warnings
 
 from compass.mpas_cores import get_mpas_cores
 from compass.config import add_config, ensure_absolute_paths
@@ -11,7 +12,8 @@ from compass import provenance
 
 
 def setup_cases(tests=None, numbers=None, config_file=None, machine=None,
-                work_dir=None, baseline_dir=None, mpas_model_path=None):
+                work_dir=None, baseline_dir=None, mpas_model_path=None,
+                cached=None):
     """
     Set up one or more test cases
 
@@ -20,8 +22,10 @@ def setup_cases(tests=None, numbers=None, config_file=None, machine=None,
     tests : list of str, optional
         Relative paths for a test cases to set up
 
-    numbers : list of int, optional
-        Case numbers to setup, as listed from ``compass list``
+    numbers : list of str, optional
+        Case numbers to setup, as listed from ``compass list``, optionally with
+        a suffix ``c`` to indicate that all steps in that test case should be
+        cached
 
     config_file : str, optional
         Configuration file with custom options for setting up and running test
@@ -41,6 +45,10 @@ def setup_cases(tests=None, numbers=None, config_file=None, machine=None,
         The relative or absolute path to the root of a branch where the MPAS
         model has been built
 
+    cached : list of list of str, optional
+        For each test in ``tests``, which steps (if any) should be cached,
+        or "_all" if all steps should be cached
+
     Returns
     -------
     test_cases : dict of compass.TestCase
@@ -55,6 +63,14 @@ def setup_cases(tests=None, numbers=None, config_file=None, machine=None,
 
     if tests is None and numbers is None:
         raise ValueError('At least one of tests or numbers is needed.')
+
+    if cached is not None:
+        if tests is None:
+            warnings.warn('Ignoring "cached" argument becasue "tests" was '
+                          'not provided')
+        elif len(cached) != len(tests):
+            raise ValueError('A list of cached steps must be provided for '
+                             'each test in "tests"')
 
     if work_dir is None:
         work_dir = os.getcwd()
@@ -71,18 +87,36 @@ def setup_cases(tests=None, numbers=None, config_file=None, machine=None,
     if numbers is not None:
         keys = list(all_test_cases)
         for number in numbers:
+            cache_all = False
+            if number.endswith('c'):
+                cache_all = True
+                number = int(number[:-1])
+            else:
+                number = int(number)
+
             if number >= len(keys):
                 raise ValueError('test number {} is out of range.  There are '
                                  'only {} tests.'.format(number, len(keys)))
             path = keys[number]
-            test_cases[path] = all_test_cases[path]
+            test_case = all_test_cases[path]
+            if cache_all:
+                for step in test_case.steps.values():
+                    step.cached = True
+            test_cases[path] = test_case
 
     if tests is not None:
-        for path in tests:
+        for index, path in enumerate(tests):
             if path not in all_test_cases:
                 raise ValueError('Test case with path {} is not in '
                                  'test_cases'.format(path))
-            test_cases[path] = all_test_cases[path]
+            test_case = all_test_cases[path]
+            if cached is not None:
+                step_names = cached[index]
+                if len(step_names) > 0 and step_names[0] == '_all':
+                    step_names = list(test_case.steps.keys())
+                for step_name in step_names:
+                    test_case.steps[step_name].cached = True
+            test_cases[path] = test_case
 
     # get the MPAS core of the first test case.  We'll assume all tests are
     # for this core
@@ -133,6 +167,10 @@ def setup_case(path, test_case, config_file, machine, work_dir, baseline_dir,
     """
 
     print('  {}'.format(path))
+    cached_steps = [step.name for step in test_case.steps.values() if step.cached]
+    if len(cached_steps) > 0:
+        cached_steps = ' '.join(cached_steps)
+        print(f'    steps with cached outputs: {cached_steps}')
 
     config = configparser.ConfigParser(
         interpolation=configparser.ExtendedInterpolation())
@@ -253,10 +291,12 @@ def main():
                         help="Relative path for a test case to set up",
                         metavar="PATH")
     parser.add_argument("-n", "--case_number", nargs='+', dest="case_num",
-                        type=int,
+                        type=str,
                         help="Case number(s) to setup, as listed from "
                              "'compass list'. Can be a space-separated"
-                             "list of case numbers.", metavar="NUM")
+                             "list of case numbers.  A suffix 'c' indicates"
+                             "that all steps in the test should use cached"
+                             "outputs.", metavar="NUM")
     parser.add_argument("-f", "--config_file", dest="config_file",
                         help="Configuration file for test case setup",
                         metavar="FILE")
@@ -274,13 +314,21 @@ def main():
                         help="The path to the build of the MPAS model for the "
                              "core.",
                         metavar="PATH")
+    parser.add_argument("--cached", dest="cached", nargs='+',
+                        help="A list of steps in the test case supplied with"
+                             "--test that should use cached outputs, or "
+                             "'_all' if all steps should be cached",
+                        metavar="STEP")
 
     args = parser.parse_args(sys.argv[2:])
+    cached = None
     if args.test is None:
         tests = None
     else:
         tests = [args.test]
+        if args.cached is not None:
+            cached = [args.cached]
     setup_cases(tests=tests, numbers=args.case_num,
                 config_file=args.config_file, machine=args.machine,
                 work_dir=args.work_dir, baseline_dir=args.baseline_dir,
-                mpas_model_path=args.mpas_model)
+                mpas_model_path=args.mpas_model, cached=cached)
