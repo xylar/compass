@@ -5,7 +5,7 @@ import parsl
 from parsl.config import Config
 from parsl.app.app import python_app
 from parsl.providers import LocalProvider
-from parsl.executors import WorkQueueExecutor
+from parsl.executors import WorkQueueExecutor, HighThroughputExecutor
 from parsl.executors.threads import ThreadPoolExecutor
 
 import time
@@ -30,28 +30,41 @@ if __name__ == '__main__':
     else:
         executor_type = 'WorkQueue'
 
+    provider = LocalProvider()
+
     if executor_type == 'WorkQueue':
         print('WQEX: local_provider')
         config = Config(
             executors=[
                 WorkQueueExecutor(
-                    # port=50055,
-                    autolabel=True,
-                    autocategory=True,
-                    provider=LocalProvider()
+                    provider=provider
                 )
             ]
         )
 
-        kwargs = dict(parsl_resource_specification={'cores': 1})
+        kwargs = dict(parsl_resource_specification={
+            'cores': 1, 'memory': 100, 'disk': 100})
 
     elif executor_type == 'ThreadPool':
-        print(f'THPEX - cpu cores: {multiprocessing.cpu_count()}')
+        print(f'TPEX - cpu cores: {multiprocessing.cpu_count()}')
         config = Config(
             executors=[
                 ThreadPoolExecutor(
                     max_threads=multiprocessing.cpu_count(),
                     label='local_threads'
+                )
+            ]
+        )
+
+        kwargs = dict()
+    elif executor_type == 'HighThroughput':
+        print(f'HTEX - cpu cores: {multiprocessing.cpu_count()}')
+        config = Config(
+            executors=[
+                HighThroughputExecutor(
+                    max_workers=multiprocessing.cpu_count(),
+                    label='local_threads',
+                    provider=provider
                 )
             ]
         )
