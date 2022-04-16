@@ -11,8 +11,8 @@ from compass.ocean.tests.global_ocean.mesh.so12to60.dynamic_adjustment import \
     SO12to60DynamicAdjustment
 from compass.ocean.tests.global_ocean.mesh.wc14.dynamic_adjustment import \
     WC14DynamicAdjustment
-from compass.ocean.tests.global_ocean.mesh.kuroshio12to60.dynamic_adjustment \
-    import Kuroshio12to60DynamicAdjustment
+from compass.ocean.tests.global_ocean.mesh.kuroshio.dynamic_adjustment \
+    import KuroshioDynamicAdjustment
 from compass.ocean.tests.global_ocean.init import Init
 from compass.ocean.tests.global_ocean.performance_test import PerformanceTest
 from compass.ocean.tests.global_ocean.restart_test import RestartTest
@@ -228,8 +228,8 @@ class GlobalOcean(TestGroup):
                     test_group=self, mesh=mesh, init=init,
                     dynamic_adjustment=dynamic_adjustment))
 
-        # Kuroshio12to60
-        for mesh_name in ['Kuroshio12to60']:
+        # Kuroshio meshes without ice-shelf cavities
+        for mesh_name in ['Kuroshio12to60', 'Kuroshio8to60']:
             mesh = Mesh(test_group=self, mesh_name=mesh_name)
             self.add_test_case(mesh)
 
@@ -242,7 +242,7 @@ class GlobalOcean(TestGroup):
                 PerformanceTest(
                     test_group=self, mesh=mesh, init=init,
                     time_integrator=time_integrator))
-            dynamic_adjustment = Kuroshio12to60DynamicAdjustment(
+            dynamic_adjustment = KuroshioDynamicAdjustment(
                 test_group=self, mesh=mesh, init=init,
                 time_integrator=time_integrator)
             self.add_test_case(dynamic_adjustment)
