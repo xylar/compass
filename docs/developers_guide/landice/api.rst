@@ -231,6 +231,26 @@ hydro_radial
    visualize.Visualize.run
    visualize.visualize_hydro_radial
 
+ismip6_forcing
+~~~~~~~~~~~~~~
+
+.. currentmodule:: compass.landice.tests.ismip6_forcing
+
+.. autosummary::
+   :toctree: generated/
+
+   Ismip6Forcing
+
+   atmosphere.Atmosphere
+   atmosphere.Atmosphere.run
+
+   ocean_basal.OceanBasal
+   ocean_basal.OceanBasal.run
+
+   ocean_thermal.OceanThermal
+   ocean_thermal.OceanThermal.run
+
+
 kangerlussuaq
 ~~~~~~~~~~~~~
 
