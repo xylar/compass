@@ -1,7 +1,7 @@
 import os
 
 from mpas_tools.logging import LoggingContext, check_call
-from compass.parallel import get_available_cores_and_nodes
+from compass.parallel import get_available_cores_and_nodes, run_command
 from compass.logging import log_method_call
 
 
@@ -255,13 +255,13 @@ class TestCase:
 
         if len(missing_files) > 0:
             raise OSError(
-                'input file(s) missing in step {} of {}/{}/{}: {}'.format(
-                    step.name, step.mpas_core.name, step.test_group.name,
-                    step.test_case.subdir, missing_files))
+                f'input file(s) missing in step {step.name} of '
+                f'{step.mpas_core.name}/{step.test_group.name}/'
+                f'{step.test_case.subdir}: {missing_files}')
 
         test_name = step.path.replace('/', '_')
         if new_log_file:
-            log_filename = '{}/{}.log'.format(cwd, step.name)
+            log_filename = f'{cwd}/{step.name}.log'
             step.log_filename = log_filename
             step_logger = None
         else:
@@ -271,10 +271,20 @@ class TestCase:
                             log_filename=log_filename) as step_logger:
             step.logger = step_logger
             os.chdir(step.work_dir)
-            step_logger.info('')
-            log_method_call(method=step.run, logger=step_logger)
-            step_logger.info('')
-            step.run()
+
+            # this function will perform small tasks that require knowing the
+            # resources of the task before the step runs (such as creating graph
+            # partitions)
+            step.runtime_setup()
+
+            if step.args is not None:
+                run_command(step.args, step.cpus_per_task, step.ntasks,
+                            step.openmp_threads, step.config, step.logger)
+            else:
+                step_logger.info('')
+                log_method_call(method=step.run, logger=step_logger)
+                step_logger.info('')
+                step.run()
 
         missing_files = list()
         for output_file in step.outputs:
@@ -283,9 +293,9 @@ class TestCase:
 
         if len(missing_files) > 0:
             raise OSError(
-                'output file(s) missing in step {} of {}/{}/{}: {}'.format(
-                    step.name, step.mpas_core.name, step.test_group.name,
-                    step.test_case.subdir, missing_files))
+                f'output file(s) missing in step {step.name} of '
+                f'{step.mpas_core.name}/{step.test_group.name}/'
+                f'{step.test_case.subdir}: {missing_files}')
 
     def _run_step_as_subprocess(self, step, new_log_file):
         """
