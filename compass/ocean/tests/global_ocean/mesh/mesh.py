@@ -51,8 +51,9 @@ class MeshStep(Step):
         subdir : str, optional
             the subdirectory for the step.  The default is ``name``
         """
-        super().__init__(test_case, name=name, subdir=subdir, cores=None,
-                         min_cores=None, threads=None)
+        super().__init__(test_case, name=name, subdir=subdir, ntasks=1,
+                         min_tasks=1, cpus_per_task=None,
+                         min_cpus_per_task=None, openmp_threads=1)
         for file in ['culled_mesh.nc', 'culled_graph.info',
                      'critical_passages_mask_final.nc']:
             self.add_output_file(filename=file)
@@ -69,8 +70,10 @@ class MeshStep(Step):
         """
         # get the these properties from the config options
         config = self.config
-        self.cores = config.getint('global_ocean', 'mesh_cores')
-        self.min_cores = config.getint('global_ocean', 'mesh_min_cores')
+        self.cpus_per_task = config.getint('global_ocean',
+                                           'mesh_cpus_per_task')
+        self.min_cpus_per_task = config.getint('global_ocean',
+                                               'mesh_min_cpus_per_task')
 
     def run(self):
         """
