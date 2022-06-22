@@ -1,71 +1,43 @@
-from compass.step import Step
-from compass.ocean.iceshelf import adjust_ssh
+from compass.ocean.iceshelf.ssh_adjustment import SshAdjustment as \
+    SshAdjustmentBase
 
 
-class SshAdjustment(Step):
+class SshAdjustment(SshAdjustmentBase):
     """
-    A step for iteratively adjusting the pressure from the weight of the ice
-    shelf to match the sea-surface height as part of ice-shelf 2D test cases
+    Set up the initial condition for other ice-shelf 2D test cases
     """
-    def __init__(self, test_case, ntasks=1, min_tasks=None, openmp_threads=1):
+
+    def __init__(self, test_group, resolution, coord_type):
         """
-        Create the step
+        Create the test case
 
         Parameters
         ----------
-        test_case : compass.TestCase
-            The test case this step belongs to
+        test_group : compass.ocean.tests.ice_shelf_2d.IceShelf2d
+            The test group that this test case belongs to
 
-        ntasks : int, optional
-            the number of tasks the step would ideally use.  If fewer tasks
-            are available on the system, the step will run on all available
-            tasks as long as this is not below ``min_tasks``
+        resolution : str
+            The resolution of the test case
 
-        min_tasks : int, optional
-            the number of tasks the step requires.  If the system has fewer
-            than this number of tasks, the step will fail
-
-        openmp_threads : int, optional
-            the number of OpenMP threads the step will use
-
+        coord_type : str
+            The type of vertical coordinate (``z-star``, ``z-level``, etc.)
         """
-        if min_tasks is None:
-            min_tasks = ntasks
-        super().__init__(test_case=test_case, name='ssh_adjustment',
-                         ntasks=ntasks, min_tasks=min_tasks,
-                         openmp_threads=openmp_threads)
+        name = 'ssh_adjustment'
+        subdir = f'{resolution}/{coord_type}/{name}'
+        init_dir = '../../init/initial_state'
+        super().__init__(test_group=test_group, name=name, subdir=subdir,
+                         variable='landIcePressure',
+                         init_target_filename=f'{init_dir}/initial_state.nc',
+                         graph_target_filename=f'{init_dir}/culled_graph.info')
 
-        # generate the namelist, replacing a few default options
-        # start with the same namelist settings as the forward run
-        self.add_namelist_file('compass.ocean.tests.ice_shelf_2d',
-                               'namelist.forward')
-
-        # we don't want the global stats AM for this run
-        self.add_namelist_options({'config_AM_globalStats_enable': '.false.'})
-
-        # we want a shorter run and no freshwater fluxes under the ice shelf from
-        # these namelist options
-        self.add_namelist_file('compass.ocean.namelists', 'namelist.ssh_adjust')
-
-        self.add_streams_file('compass.ocean.streams', 'streams.ssh_adjust')
-
-        self.add_input_file(filename='adjusting_init0.nc',
-                            target='../initial_state/initial_state.nc')
-
-        self.add_input_file(filename='graph.info',
-                            target='../initial_state/culled_graph.info')
-
-        self.add_model_as_input()
-
-        self.add_output_file(filename='adjusted_init.nc')
-
-    # no setup() is needed
-
-    def run(self):
+    def configure(self):
         """
-        Run this step of the test case
+        Add the steps based on the ``iteration_count`` config option
         """
-        config = self.config
-        iteration_count = config.getint('ssh_adjustment', 'iterations')
-        adjust_ssh(variable='landIcePressure', iteration_count=iteration_count,
-                   step=self)
+        super().configure()
+
+        for step_name, step in self.steps.items():
+            if step_name.startswith('forward'):
+                step.add_namelist_file('compass.ocean.tests.ice_shelf_2d',
+                                       'namelist.forward')
+

@@ -1,8 +1,7 @@
-from compass.model import run_model
-from compass.step import Step
+from compass.model import ModelStep
 
 
-class Forward(Step):
+class Forward(ModelStep):
     """
     A step for performing forward MPAS-Ocean runs as part of ice-shelf 2D test
     cases.
@@ -71,20 +70,12 @@ class Forward(Step):
         self.add_streams_file('compass.ocean.tests.ice_shelf_2d',
                               'streams.forward')
 
-        self.add_input_file(filename='init.nc',
-                            target='../ssh_adjustment/adjusted_init.nc')
-        self.add_input_file(filename='graph.info',
-                            target='../initial_state/culled_graph.info')
-
-        self.add_model_as_input()
+        self.add_input_file(
+            filename='init.nc',
+            target='../../ssh_adjustment/output/adjusted_init.nc')
+        self.add_input_file(
+            filename='graph.info',
+            target='../../init/initial_state/culled_graph.info')
 
         self.add_output_file('output.nc')
         self.add_output_file('land_ice_fluxes.nc')
-
-    # no setup() is needed
-
-    def run(self):
-        """
-        Run this step of the test case
-        """
-        run_model(self)

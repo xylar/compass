@@ -1,9 +1,6 @@
 from compass.testcase import TestCase
-from compass.ocean.tests.ice_shelf_2d.initial_state import InitialState
-from compass.ocean.tests.ice_shelf_2d.ssh_adjustment import SshAdjustment
 from compass.ocean.tests.ice_shelf_2d.forward import Forward
 from compass.ocean.tests.ice_shelf_2d.viz import Viz
-from compass.ocean.tests import ice_shelf_2d
 from compass.validate import compare_variables
 
 
@@ -40,14 +37,9 @@ class RestartTest(TestCase):
         name = 'restart_test'
         self.resolution = resolution
         self.coord_type = coord_type
-        subdir = '{}/{}/{}'.format(resolution, coord_type, name)
+        subdir = f'{resolution}/{coord_type}/{name}'
         super().__init__(test_group=test_group, name=name,
                          subdir=subdir)
-
-        self.add_step(
-            InitialState(test_case=self, resolution=resolution))
-        self.add_step(
-            SshAdjustment(test_case=self, ntasks=4, openmp_threads=1))
 
         for part in ['full', 'restart']:
             name = '{}_run'.format(part)
@@ -65,25 +57,11 @@ class RestartTest(TestCase):
 
         self.add_step(Viz(test_case=self), run_by_default=False)
 
-    def configure(self):
-        """
-        Modify the configuration options for this test case.
-        """
-        ice_shelf_2d.configure(self.resolution, self.coord_type, self.config)
-
-    # no run() method is needed
-
     def validate(self):
         """
         Test cases can override this method to perform validation of variables
         and timers
         """
-        variables = ['bottomDepth', 'ssh', 'layerThickness', 'zMid',
-                     'maxLevelCell', 'temperature', 'salinity']
-        compare_variables(
-            test_case=self, variables=variables,
-            filename1='initial_state/initial_state.nc')
-
         variables = ['temperature', 'salinity', 'layerThickness',
                      'normalVelocity']
         compare_variables(test_case=self, variables=variables,
