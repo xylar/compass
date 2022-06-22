@@ -1,10 +1,10 @@
 <streams>
 
 <immutable_stream name="mesh"
-                  filename_template="adjusting_init.nc"/>
+                  filename_template="init.nc"/>
 
 <immutable_stream name="input"
-                  filename_template="adjusting_init.nc"/>
+                  filename_template="init.nc"/>
 
 <stream name="output_ssh"
         type="output"
