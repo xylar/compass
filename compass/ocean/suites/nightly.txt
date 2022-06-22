@@ -22,7 +22,11 @@ ocean/global_ocean/QUwISC240/PHC/init
   cached
 ocean/global_ocean/QUwISC240/PHC/performance_test
 
+ocean/ice_shelf_2d/5km/z-star/init
+ocean/ice_shelf_2d/5km/z-star/ssh_adjustment
 ocean/ice_shelf_2d/5km/z-star/restart_test
+ocean/ice_shelf_2d/5km/z-level/init
+ocean/ice_shelf_2d/5km/z-level/ssh_adjustment
 ocean/ice_shelf_2d/5km/z-level/restart_test
 
 ocean/ziso/20km/default
