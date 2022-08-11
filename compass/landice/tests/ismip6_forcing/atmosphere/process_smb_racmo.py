@@ -1,14 +1,12 @@
 import os
 import shutil
-import subprocess
 import xarray as xr
 import warnings
 from mpas_tools.io import write_netcdf
+from mpas_tools.logging import check_call
 from compass.step import Step
 from compass.landice.tests.ismip6_forcing.atmosphere.create_mapfile_smb \
     import build_mapping_file
-
-
 
 
 class ProcessSmbRacmo(Step):
@@ -62,7 +60,6 @@ class ProcessSmbRacmo(Step):
                           f" will not run unless set 'True' in the"
                           f" config file.")
 
-
     def run(self):
         """
         Run this step of the test case
@@ -99,7 +96,7 @@ class ProcessSmbRacmo(Step):
                 f"{input_file_list[0]}",
                 f"{racmo_file_temp1}"]
 
-        subprocess.check_call(args)
+        check_call(args, logger)
 
         # interpolate the racmo smb data
         remapped_file_temp = "remapped.nc"  # temporary file name
@@ -119,14 +116,14 @@ class ProcessSmbRacmo(Step):
                 f"{remapped_file_temp}",
                 f"{racmo_file_temp2}"]
 
-        subprocess.check_call(args)
+        check_call(args, logger)
 
         # change the unit attribute to kg/m^2/s
         args = ["ncatted", "-O", "-a",
                 "units,sfcMassBal,m,c,'kg m-2 s-1'",
                 f"{racmo_file_temp2}"]
 
-        subprocess.check_call(args)
+        check_call(args, logger)
 
         # call the function that renames the ismip6 variables to MALI variables
         logger.info("Renaming source variables to mali variable names...")
@@ -191,7 +188,7 @@ class ProcessSmbRacmo(Step):
                 "-m", mapping_file,
                 "-v", "smb"]
 
-        subprocess.check_call(args)
+        check_call(args, self.logger)
 
     def rename_source_smb_to_mali_vars(self, remapped_file_temp, output_file):
         """

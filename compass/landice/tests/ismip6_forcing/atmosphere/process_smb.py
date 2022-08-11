@@ -1,11 +1,11 @@
 import os
 import numpy as np
 import shutil
-import subprocess
 import xarray as xr
 from compass.landice.tests.ismip6_forcing.atmosphere.create_mapfile_smb \
     import build_mapping_file
 from mpas_tools.io import write_netcdf
+from mpas_tools.logging import check_call
 from compass.step import Step
 
 
@@ -134,7 +134,7 @@ class ProcessSMB(Step):
                 f"{combined_file_temp}",
                 f"{clim_ismip6_temp}"]
 
-        subprocess.check_call(args)
+        check_call(args, logger)
 
         # remap and rename the ismip6 smb climatology
         logger.info("Remapping ismip6 climatology onto MALI mesh...")
@@ -231,7 +231,7 @@ class ProcessSMB(Step):
                 "-m", mapping_file,
                 "-v", "smb_anomaly"]
 
-        subprocess.check_call(args)
+        check_call(args, logger)
 
     def rename_ismip6_smb_to_mali_vars(self, remapped_file_temp, output_file):
         """

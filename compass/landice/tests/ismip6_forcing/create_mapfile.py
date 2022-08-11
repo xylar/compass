@@ -1,6 +1,5 @@
 import os
 import shutil
-import subprocess
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from mpas_tools.logging import check_call
 
@@ -55,7 +54,7 @@ def build_mapping_file(config, cores, logger, ismip6_grid_file,
             "--proj", ismip6_projection,
             "--rank", "2"]
 
-    subprocess.check_call(args)
+    check_call(args, logger)
 
     # create a MALI mesh scripfile if mapping file does not exist
     # make sure the mali mesh file uses the longitude convention of [0 2pi]
@@ -69,7 +68,7 @@ def build_mapping_file(config, cores, logger, ismip6_grid_file,
             "--file", mali_mesh_copy,
             "--proj", ismip6_projection]
 
-    subprocess.check_call(args)
+    check_call(args, logger)
 
     scrip_from_mpas(mali_mesh_file, mali_scripfile)
 

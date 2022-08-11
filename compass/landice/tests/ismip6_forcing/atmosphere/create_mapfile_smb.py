@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import shutil
-import subprocess
 import netCDF4
 import xarray as xr
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
@@ -68,7 +67,7 @@ def build_mapping_file(config, cores, logger, ismip6_grid_file,
             "--file", mali_mesh_copy,
             "--proj", ismip6_projection]
 
-    subprocess.check_call(args)
+    check_call(args, logger)
 
     # create a MALI mesh scripfile if mapping file does not exist
     scrip_from_mpas(mali_mesh_copy, mali_scripfile)
@@ -103,7 +102,7 @@ def build_mapping_file(config, cores, logger, ismip6_grid_file,
             "-i", "-64bit_offset",
             "--dst_regional", "--src_regional"]
 
-    subprocess.check_call(args)
+    check_call(args, logger)
 
     # remove the temporary scripfiles once the mapping file is generated
     print("Removing the temporary mesh and scripfiles...")

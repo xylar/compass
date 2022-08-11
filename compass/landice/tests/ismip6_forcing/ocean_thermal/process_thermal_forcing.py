@@ -1,11 +1,11 @@
 import os
 import numpy as np
 import shutil
-import subprocess
 import xarray as xr
 from compass.landice.tests.ismip6_forcing.create_mapfile \
     import build_mapping_file
 from mpas_tools.io import write_netcdf
+from mpas_tools.logging import check_call
 from compass.step import Step
 
 
@@ -156,7 +156,7 @@ class ProcessThermalForcing(Step):
                 "-o", output_file,
                 "-m", mapping_file]
 
-        subprocess.check_call(args)
+        check_call(args, self.logger)
 
     def rename_ismip6thermalforcing_to_mali_vars(self, remapped_file_temp,
                                                  output_file):
