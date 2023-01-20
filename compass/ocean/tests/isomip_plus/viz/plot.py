@@ -454,7 +454,7 @@ class MoviePlotter(object):
 
     def plot_horiz_series(self, da, nameInTitle, prefix, oceanDomain,
                           units=None, vmin=None, vmax=None, cmap=None,
-                          cmap_set_under=None, cmap_scale='linear'):
+                          cmap_set_under=None, cmap_set_over=None, cmap_scale='linear'):
         """
         Plot a series of image of a given variable
 
@@ -512,6 +512,7 @@ class MoviePlotter(object):
                                    oceanDomain=oceanDomain, vmin=vmin,
                                    vmax=vmax, cmap=cmap,
                                    cmap_set_under=cmap_set_under,
+                                   cmap_set_over=cmap_set_over,
                                    cmap_scale=cmap_scale)
             if self.showProgress:
                 bar.update(tIndex+1)
@@ -520,7 +521,7 @@ class MoviePlotter(object):
 
     def plot_3d_field_top_bot_section(self, da, nameInTitle, prefix,
                                       units=None, vmin=None, vmax=None,
-                                      cmap=None, cmap_set_under=None):
+                                      cmap=None, cmap_set_under=None, cmap_set_over=None):
         """
         Plot a series of images of a given 3D variable showing the value
         at the top (sea surface or ice-ocean interface), sea floor and in an
@@ -575,7 +576,8 @@ class MoviePlotter(object):
                                'top {}'.format(nameInTitle),
                                'top{}'.format(prefix), oceanDomain=True,
                                vmin=vmin, vmax=vmax, cmap=cmap,
-                               cmap_set_under=cmap_set_under)
+                               cmap_set_under=cmap_set_under,
+                               cmap_set_over=cmap_set_over)
 
         maxLevelCell = self.dsMesh.maxLevelCell-1
 
@@ -758,7 +760,7 @@ class MoviePlotter(object):
 
     def _plot_horiz_field(self, field, title, outFileName, oceanDomain=True,
                           vmin=None, vmax=None, figsize=(9, 3), cmap=None,
-                          cmap_set_under=None, cmap_scale='linear'):
+                          cmap_set_under=None, cmap_set_over=None, cmap_scale='linear'):
 
         try:
             os.makedirs(os.path.dirname(outFileName))
@@ -780,6 +782,9 @@ class MoviePlotter(object):
         if cmap_set_under is not None:
             current_cmap = localPatches.get_cmap()
             current_cmap.set_under(cmap_set_under)
+        if cmap_set_over is not None:
+            current_cmap = localPatches.get_cmap()
+            current_cmap.set_over(cmap_set_over)
         localPatches.set_edgecolor('face')
         localPatches.set_clim(vmin=vmin, vmax=vmax)
 
