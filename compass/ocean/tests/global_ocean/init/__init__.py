@@ -1,4 +1,5 @@
 import os
+import xarray
 
 from compass.testcase import TestCase
 from compass.ocean.tests.global_ocean.init.initial_state import InitialState
@@ -78,6 +79,11 @@ class Init(TestCase):
         Test cases can override this method to perform validation of variables
         and timers
         """
+        ds = xarray.open_dataset('initial_state/initial_state.nc')
+        max_level_cell = ds.maxLevelCell
+        if max_level_cell.min().values == 0:
+            raise ValueError('maxLevelCell has zeros even after culling land.')
+
         variables = ['temperature', 'salinity', 'layerThickness']
         compare_variables(test_case=self, variables=variables,
                           filename1='initial_state/initial_state.nc')
