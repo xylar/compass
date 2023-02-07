@@ -14,7 +14,6 @@ from compass.ocean.tests.global_ocean.files_for_e3sm.e3sm_to_cmip_maps import \
 from compass.ocean.tests.global_ocean.files_for_e3sm.diagnostics_files \
     import DiagnosticsFiles
 from compass.ocean.tests.global_ocean.forward import get_forward_subdir
-from compass.ocean.tests.global_ocean.configure import configure_global_ocean
 
 
 class FilesForE3SM(TestCase):
@@ -103,7 +102,7 @@ class FilesForE3SM(TestCase):
         """
         Modify the configuration options for this test case
         """
-        configure_global_ocean(test_case=self, mesh=self.mesh, init=self.init)
+        self.init.configure(config=self.config)
         package = 'compass.ocean.tests.global_ocean.files_for_e3sm'
         with package_path(package, 'README') as target:
             symlink(str(target), '{}/README'.format(self.work_dir))
