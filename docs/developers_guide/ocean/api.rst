@@ -148,7 +148,6 @@ test cases and steps
    :toctree: generated/
 
    GlobalOcean
-   configure
 
    analysis_test.AnalysisTest
    analysis_test.AnalysisTest.configure
@@ -244,7 +243,6 @@ global_ocean framework
 .. autosummary::
    :toctree: generated/
 
-   configure.configure_global_ocean
    metadata.get_e3sm_mesh_names
    metadata.add_mesh_and_init_metadata
 
