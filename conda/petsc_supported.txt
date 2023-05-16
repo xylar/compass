@@ -8,3 +8,4 @@ chrysalis, intel, openmpi
 chrysalis, gnu, openmpi
 compy, intel, impi
 pm-cpu, gnu, mpich
+pm-cpu, intel, mpich

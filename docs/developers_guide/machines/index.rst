@@ -64,6 +64,8 @@ the MPAS model.
 |              | gnu        | openmpi   | gfortran          |
 +--------------+------------+-----------+-------------------+
 | pm-cpu       | gnu        | mpich     | gnu-cray          |
+|              +------------+-----------+-------------------+
+|              | intel      | mpich     | intel-cray        |
 +--------------+------------+-----------+-------------------+
 
 Below are specifics for each supported machine
