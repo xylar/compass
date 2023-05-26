@@ -384,8 +384,9 @@ def get_env_vars(machine, compiler, mpilib):
     return env_vars
 
 
-def build_spack_env(config, update_spack, machine, compiler, mpi, spack_env,
-                    spack_base, spack_template_path, env_vars, tmpdir, logger):
+def build_spack_env(config, update_spack, machine, compiler, mpi,  # noqa: C901
+                    spack_env, spack_base, spack_template_path, env_vars,
+                    tmpdir, logger):
 
     albany = config.get('deploy', 'albany')
     cmake = config.get('deploy', 'cmake')
@@ -393,6 +394,7 @@ def build_spack_env(config, update_spack, machine, compiler, mpi, spack_env,
     lapack = config.get('deploy', 'lapack')
     petsc = config.get('deploy', 'petsc')
     scorpio = config.get('deploy', 'scorpio')
+    parallelio = config.get('deploy', 'parallelio')
 
     spack_branch_base = f'{spack_base}/spack_for_mache_{mache_version}'
 
@@ -414,7 +416,7 @@ def build_spack_env(config, update_spack, machine, compiler, mpi, spack_env,
             f'"parallel-netcdf@{pnetcdf}+cxx+fortran"'])
 
     if esmf != 'None':
-        specs.append(f'"esmf@{esmf}+mpi+netcdf+pnetcdf"')
+        specs.append(f'"esmf@{esmf}+mpi+netcdf+pnetcdf+external-parallelio"')
     if lapack != 'None':
         specs.append(f'"netlib-lapack@{lapack}"')
         include_e3sm_lapack = False
@@ -427,6 +429,11 @@ def build_spack_env(config, update_spack, machine, compiler, mpi, spack_env,
         specs.append(
             f'"scorpio'
             f'@{scorpio}+pnetcdf~timing+internal-timing~tools+malloc"')
+
+    if parallelio != 'None':
+        specs.append(
+            f'"parallelio'
+            f'@{parallelio}+pnetcdf~timing"')
 
     if albany != 'None':
         specs.append(f'"albany@{albany}+mpas"')
