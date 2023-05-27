@@ -76,6 +76,11 @@ class GlobalOcean(TestGroup):
         self._add_tests(mesh_names=['Kuroshio12to60', 'Kuroshio8to60'],
                         DynamicAdjustment=KuroshioDynamicAdjustment)
 
+        for mesh_name in ['YAM10to60', 'YAMwISC10to60']:
+            mesh_test = Mesh(test_group=self, mesh_name=mesh_name,
+                             remap_topography=True)
+            self.add_test_case(mesh_test)
+
         # A test case for making E3SM support files from an existing mesh
         self.add_test_case(FilesForE3SM(test_group=self))
 
