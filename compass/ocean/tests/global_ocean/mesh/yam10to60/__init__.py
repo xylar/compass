@@ -1,3 +1,4 @@
+import mpas_tools.mesh.creation.mesh_definition_tools as mdt
 import numpy as np
 
 from compass.mesh import QuasiUniformSphericalMeshStep
@@ -29,6 +30,7 @@ class YAM10to60BaseMesh(QuasiUniformSphericalMeshStep):
         lon = np.linspace(-180., 180., nlon)
         lat = np.linspace(-90., 90., nlat)
 
-        cell_width = 60.0 * np.ones((nlat, nlon))
+        cell_width_vs_lat = mdt.EC_CellWidthVsLat(lat)
+        cell_width = np.outer(cell_width_vs_lat, np.ones([1, lon.size]))
 
         return cell_width, lon, lat
