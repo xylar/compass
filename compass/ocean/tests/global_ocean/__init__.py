@@ -79,25 +79,8 @@ class GlobalOcean(TestGroup):
         self._add_tests(mesh_names=['Kuroshio12to60', 'Kuroshio8to60'],
                         DynamicAdjustment=KuroshioDynamicAdjustment)
 
-        for mesh_name in ['YAM10to60', 'YAMwISC10to60']:
-            mesh_test = Mesh(test_group=self, mesh_name=mesh_name,
-                             remap_topography=True)
-            self.add_test_case(mesh_test)
-
-            init_test = Init(test_group=self, mesh=mesh_test,
-                             initial_condition='WOA23',
-                             with_bgc=False)
-            self.add_test_case(init_test)
-
-            self.add_test_case(
-                PerformanceTest(
-                    test_group=self, mesh=mesh_test, init=init_test,
-                    time_integrator='split_explicit'))
-
-            dynamic_adjustment_test = YAM10to60DynamicAdjustment(
-                test_group=self, mesh=mesh_test, init=init_test,
-                time_integrator='split_explicit')
-            self.add_test_case(dynamic_adjustment_test)
+        self._add_tests(mesh_names=['YAM10to60', 'YAMwISC10to60'],
+                        DynamicAdjustment=YAM10to60DynamicAdjustment)
 
         # A test case for making E3SM support files from an existing mesh
         self.add_test_case(FilesForE3SM(test_group=self))
