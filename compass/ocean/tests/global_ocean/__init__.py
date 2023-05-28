@@ -25,6 +25,9 @@ from compass.ocean.tests.global_ocean.mesh.so12to60.dynamic_adjustment import (
 from compass.ocean.tests.global_ocean.mesh.wc14.dynamic_adjustment import (
     WC14DynamicAdjustment,
 )
+from compass.ocean.tests.global_ocean.mesh.yam10to60.dynamic_adjustment import (  # noqa: E501
+    YAM10to60DynamicAdjustment,
+)
 from compass.ocean.tests.global_ocean.monthly_output_test import (
     MonthlyOutputTest,
 )
@@ -90,6 +93,11 @@ class GlobalOcean(TestGroup):
                 PerformanceTest(
                     test_group=self, mesh=mesh_test, init=init_test,
                     time_integrator='split_explicit'))
+
+            dynamic_adjustment_test = YAM10to60DynamicAdjustment(
+                test_group=self, mesh=mesh_test, init=init_test,
+                time_integrator='split_explicit')
+            self.add_test_case(dynamic_adjustment_test)
 
         # A test case for making E3SM support files from an existing mesh
         self.add_test_case(FilesForE3SM(test_group=self))
