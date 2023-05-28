@@ -20,6 +20,8 @@ class YAM10to60BaseMesh(QuasiUniformSphericalMeshStep):
         package = 'compass.ocean.tests.global_ocean.mesh.yam10to60'
         self.add_input_file(filename='northern_south_atlantic.geojson',
                             package=package)
+        self.add_input_file(filename='amazon_delta.geojson',
+                            package=package)
         super().setup()
 
     def build_cell_width_lat_lon(self):
@@ -71,6 +73,29 @@ class YAM10to60BaseMesh(QuasiUniformSphericalMeshStep):
         # A field that goes smoothly from zero inside the shape to one outside
         # the shape over the given transition width.
         weights = 0.5 * (1 + np.tanh(atlantic_signed_distance / trans_width))
+
+        # The cell width in km becomes a blend of the background cell width
+        # and the finer cell width using the weights
+        cell_width = fine_cell_width * (1 - weights) + cell_width * weights
+
+        # read the shape
+        fc = read_feature_collection('amazon_delta.geojson')
+
+        # 400 km is equivalent to about 3 degrees latitude
+        trans_width = 400e3
+
+        # The resolution in km of the finer resolution region
+        fine_cell_width = 10.
+
+        # A field defined on the lat-long grid with the signed distance away
+        # from the boundary of the shape (positive outside and negative inside)
+        amazon_delta_signed_distance = signed_distance_from_geojson(
+            fc, lon, lat, earth_radius, max_length=0.25)
+
+        # A field that goes smoothly from zero inside the shape to one outside
+        # the shape over the given transition width.
+        weights = 0.5 * (1 + np.tanh(
+            amazon_delta_signed_distance / trans_width))
 
         # The cell width in km becomes a blend of the background cell width
         # and the finer cell width using the weights
