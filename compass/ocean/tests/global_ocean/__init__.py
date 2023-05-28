@@ -81,6 +81,16 @@ class GlobalOcean(TestGroup):
                              remap_topography=True)
             self.add_test_case(mesh_test)
 
+            init_test = Init(test_group=self, mesh=mesh_test,
+                             initial_condition='WOA23',
+                             with_bgc=False)
+            self.add_test_case(init_test)
+
+            self.add_test_case(
+                PerformanceTest(
+                    test_group=self, mesh=mesh_test, init=init_test,
+                    time_integrator='split_explicit'))
+
         # A test case for making E3SM support files from an existing mesh
         self.add_test_case(FilesForE3SM(test_group=self))
 
