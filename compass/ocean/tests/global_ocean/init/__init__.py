@@ -1,6 +1,7 @@
 import os
 
 from compass.ocean.tests.global_ocean.init.initial_state import InitialState
+from compass.ocean.tests.global_ocean.init.remap_init import RemapInit
 from compass.ocean.tests.global_ocean.init.ssh_adjustment import SshAdjustment
 from compass.testcase import TestCase
 from compass.validate import compare_variables
@@ -48,13 +49,18 @@ class Init(TestCase):
         self.initial_condition = initial_condition
 
         self.add_step(
-            InitialState(
-                test_case=self, mesh=mesh,
-                initial_condition=initial_condition))
+            RemapInit(
+                test_case=self, cull_mesh_step=mesh.steps['cull_mesh'],
+                initial_condition=initial_condition, mesh_name=mesh_name))
 
-        if mesh.with_ice_shelf_cavities:
-            self.add_step(
-                SshAdjustment(test_case=self))
+#        self.add_step(
+#            InitialState(
+#                test_case=self, mesh=mesh,
+#                initial_condition=initial_condition))
+
+#        if mesh.with_ice_shelf_cavities:
+#            self.add_step(
+#                SshAdjustment(test_case=self))
 
     def configure(self, config=None):
         """
