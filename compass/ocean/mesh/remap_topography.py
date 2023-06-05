@@ -124,6 +124,7 @@ class RemapTopography(Step):
                             logger=logger)
 
         ds_in = xr.open_dataset('topography_ncremap.nc')
+        ds_in = ds_in.reset_coords(['lon', 'lat'], drop=True)
         ds_in = ds_in.rename({'ncol': 'nCells'})
         ds_out = xr.Dataset()
         rename = {'bathymetry_var': 'bed_elevation',
