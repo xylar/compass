@@ -1,12 +1,16 @@
 import os
-from importlib.resources import contents
 
-from compass.model import run_model
-from compass.ocean.plot import plot_initial_state, plot_vertical_grid
-from compass.ocean.tests.global_ocean.metadata import (
-    add_mesh_and_init_metadata,
-)
-from compass.ocean.vertical.grid_1d import generate_1d_grid, write_1d_grid
+import numpy as np
+import xarray as xr
+from mpas_tools.cime.constants import constants
+from mpas_tools.io import write_netcdf
+
+from compass.ocean.iceshelf import compute_land_ice_pressure_and_draft
+# from compass.ocean.plot import plot_initial_state, plot_vertical_grid
+# from compass.ocean.tests.global_ocean.metadata import (
+#     add_mesh_and_init_metadata,
+# )
+from compass.ocean.vertical import init_vertical_coord
 from compass.step import Step
 
 
@@ -45,73 +49,15 @@ class InitialState(Step):
         self.mesh = mesh
         self.initial_condition = initial_condition
 
-        package = 'compass.ocean.tests.global_ocean.init'
-
-        # generate the namelist, replacing a few default options
-        self.add_namelist_file(package, 'namelist.init', mode='init')
-        self.add_namelist_file(
-            package, f'namelist.{initial_condition.lower()}',
-            mode='init')
-        if mesh.with_ice_shelf_cavities:
-            self.add_namelist_file(package, 'namelist.wisc', mode='init')
-
-        # generate the streams file
-        self.add_streams_file(package, 'streams.init', mode='init')
-
-        if mesh.with_ice_shelf_cavities:
-            self.add_streams_file(package, 'streams.wisc', mode='init')
-
-        mesh_package = mesh.package
-        mesh_package_contents = list(contents(mesh_package))
-        mesh_namelist = 'namelist.init'
-        if mesh_namelist in mesh_package_contents:
-            self.add_namelist_file(mesh_package, mesh_namelist, mode='init')
-
-        mesh_streams = 'streams.init'
-        if mesh_streams in mesh_package_contents:
-            self.add_streams_file(mesh_package, mesh_streams, mode='init')
-
-        options = {
-            'config_global_ocean_topography_source': "'mpas_variable'"
-        }
-        self.add_namelist_options(options, mode='init')
-        self.add_streams_file(package, 'streams.topo', mode='init')
-
         cull_step = self.mesh.steps['cull_mesh']
         target = os.path.join(cull_step.path, 'topography_culled.nc')
         self.add_input_file(filename='topography.nc',
                             work_dir_target=target)
 
-        self.add_input_file(
-            filename='wind_stress.nc',
-            target='windStress.ncep_1958-2000avg.interp3600x2431.151106.nc',
-            database='initial_condition_database')
-
-        if initial_condition == 'WOA23':
+        for prefix in ['wind_stress', 'temperature', 'salinity']:
             self.add_input_file(
-                filename='woa23.nc',
-                target='woa23_decav_0.25_extrap.20230416.nc',
-                database='initial_condition_database')
-        elif initial_condition == 'PHC':
-            self.add_input_file(
-                filename='temperature.nc',
-                target='PotentialTemperature.01.filled.60levels.PHC.151106.nc',
-                database='initial_condition_database')
-            self.add_input_file(
-                filename='salinity.nc',
-                target='Salinity.01.filled.60levels.PHC.151106.nc',
-                database='initial_condition_database')
-        else:
-            # EN4_1900
-            self.add_input_file(
-                filename='temperature.nc',
-                target='PotentialTemperature.100levels.Levitus.'
-                       'EN4_1900estimate.200813.nc',
-                database='initial_condition_database')
-            self.add_input_file(
-                filename='salinity.nc',
-                target='Salinity.100levels.Levitus.EN4_1900estimate.200813.nc',
-                database='initial_condition_database')
+                filename=f'{prefix}_depth.nc',
+                target=f'../remap_init/{prefix}_remapped.nc')
 
         mesh_path = self.mesh.get_cull_mesh_path()
 
@@ -134,41 +80,64 @@ class InitialState(Step):
                      'graph.info']:
             self.add_output_file(filename=file)
 
-    def setup(self):
-        """
-        Get resources at setup from config options
-        """
-        self._get_resources()
-
-    def constrain_resources(self, available_resources):
-        """
-        Update resources at runtime from config options
-        """
-        self._get_resources()
-        super().constrain_resources(available_resources)
-
     def run(self):
         """
         Run this step of the testcase
         """
         config = self.config
-        interfaces = generate_1d_grid(config=config)
+        section = config['global_ocean_init']
+        min_land_ice_fraction = section.getfloat('min_land_ice_fraction')
+        min_column_thickness = section.getfloat('min_column_thickness')
+        min_layer_thickness = section.getfloat('min_layer_thickness')
+        min_levels = section.getint('minimum_levels')
 
-        write_1d_grid(interfaces=interfaces, out_filename='vertical_grid.nc')
-        plot_vertical_grid(grid_filename='vertical_grid.nc', config=config,
-                           out_filename='vertical_grid.png')
+        ds_mesh = xr.open_dataset('mesh.nc')
 
-        run_model(self)
+        ds_topo = xr.open_dataset('topography.nc')
+        ssh = ds_topo.landIceDraftObserved
+        bed_elevation = ds_topo.bed_elevation
 
-        add_mesh_and_init_metadata(self.outputs, config,
-                                   init_filename='initial_state.nc')
+        ds = ds_mesh.copy()
 
-        plot_initial_state(input_file_name='initial_state.nc',
-                           output_file_name='initial_state.png')
+        ds['landIceFraction'] = \
+            ds_topo.landIceFracObserved.expand_dims(dim='Time', axis=0)
+        ds['landIceFloatingFraction'] = ds['landIceFraction']
 
-    def _get_resources(self):
-        # get the these properties from the config options
-        config = self.config
-        self.ntasks = config.getint('global_ocean', 'init_ntasks')
-        self.min_tasks = config.getint('global_ocean', 'init_min_tasks')
-        self.openmp_threads = config.getint('global_ocean', 'init_threads')
+        # This inequality needs to be > rather than >= to ensure correctness
+        # when min_land_ice_fraction = 0
+        mask = ds.landIceFraction > min_land_ice_fraction
+
+        floating_mask = np.logical_and(
+            ds.landIceFloatingFraction > 0,
+            ds.landIceFraction > min_land_ice_fraction)
+
+        ds['landIceMask'] = mask.astype(int)
+        ds['landIceFloatingMask'] = floating_mask.astype(int)
+
+        ds['landIceFraction'] = xr.where(mask, ds.landIceFraction, 0.)
+
+        ref_density = constants['SHR_CONST_RHOSW']
+        land_ice_pressure, _ = compute_land_ice_pressure_and_draft(
+            ssh=ssh, modify_mask=ssh < 0., ref_density=ref_density)
+
+        ds['landIcePressure'] = land_ice_pressure
+        ds['landIceDraft'] = ssh
+        ds['ssh'] = ssh
+        ds['bottomDepth'] = -bed_elevation
+
+        min_column_thickness = max(min_column_thickness,
+                                   min_levels * min_layer_thickness)
+        min_depth = -ssh + min_column_thickness
+        ds['bottomDepth'] = np.maximum(ds.bottomDepth, min_depth)
+
+        init_vertical_coord(config, ds)
+
+        write_netcdf(ds, 'initial_state.nc')
+
+        # for prefix in ['temperature', 'salinity']:
+
+        # add_mesh_and_init_metadata(self.outputs, config,
+        #                            init_filename='initial_state.nc')
+
+        # plot_initial_state(input_file_name='initial_state.nc',
+        #                    output_file_name='initial_state.png')

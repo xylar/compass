@@ -53,10 +53,10 @@ class Init(TestCase):
                 test_case=self, cull_mesh_step=mesh.steps['cull_mesh'],
                 initial_condition=initial_condition, mesh_name=mesh_name))
 
-#        self.add_step(
-#            InitialState(
-#                test_case=self, mesh=mesh,
-#                initial_condition=initial_condition))
+        self.add_step(
+            InitialState(
+                test_case=self, mesh=mesh,
+                initial_condition=initial_condition))
 
 #        if mesh.with_ice_shelf_cavities:
 #            self.add_step(
