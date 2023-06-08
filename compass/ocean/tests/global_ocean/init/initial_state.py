@@ -11,6 +11,7 @@ from compass.ocean.iceshelf import compute_land_ice_pressure_and_draft
 #     add_mesh_and_init_metadata,
 # )
 from compass.ocean.vertical import init_vertical_coord
+from compass.ocean.vertical.fill import fill_zlevel_bathymetry_holes
 from compass.step import Step
 
 
@@ -94,43 +95,54 @@ class InitialState(Step):
         ds_mesh = xr.open_dataset('mesh.nc')
 
         ds_topo = xr.open_dataset('topography.nc')
-        ssh = ds_topo.landIceDraftObserved
         bed_elevation = ds_topo.bed_elevation
 
         ds = ds_mesh.copy()
 
-        ds['landIceFraction'] = \
-            ds_topo.landIceFracObserved.expand_dims(dim='Time', axis=0)
-        ds['landIceFloatingFraction'] = ds['landIceFraction']
+        if self.mesh.with_ice_shelf_cavities:
+            ssh = ds_topo.landIceDraftObserved
+            ds['landIceFraction'] = \
+                ds_topo.landIceFracObserved.expand_dims(dim='Time', axis=0)
 
-        # This inequality needs to be > rather than >= to ensure correctness
-        # when min_land_ice_fraction = 0
-        mask = ds.landIceFraction > min_land_ice_fraction
+            # This inequality needs to be > rather than >= to ensure
+            # correctness when min_land_ice_fraction = 0
+            mask = ds.landIceFraction > min_land_ice_fraction
 
-        floating_mask = np.logical_and(
-            ds.landIceFloatingFraction > 0,
-            ds.landIceFraction > min_land_ice_fraction)
+            ds['landIceMask'] = mask.astype(int)
+            ds['landIceFraction'] = xr.where(mask, ds.landIceFraction, 0.)
 
-        ds['landIceMask'] = mask.astype(int)
-        ds['landIceFloatingMask'] = floating_mask.astype(int)
+            ds['landIceFloatingMask'] = ds.landIceMask
+            ds['landIceFloatingFraction'] = ds.landIceFraction
 
-        ds['landIceFraction'] = xr.where(mask, ds.landIceFraction, 0.)
+            ref_density = constants['SHR_CONST_RHOSW']
+            land_ice_pressure, _ = compute_land_ice_pressure_and_draft(
+                ssh=ssh, modify_mask=ssh < 0., ref_density=ref_density)
 
-        ref_density = constants['SHR_CONST_RHOSW']
-        land_ice_pressure, _ = compute_land_ice_pressure_and_draft(
-            ssh=ssh, modify_mask=ssh < 0., ref_density=ref_density)
+            ds['landIcePressure'] = land_ice_pressure
+            ds['landIceDraft'] = ssh
+        else:
+            ssh = xr.zeros_like(ds_topo.bed_elevation)
 
-        ds['landIcePressure'] = land_ice_pressure
-        ds['landIceDraft'] = ssh
         ds['ssh'] = ssh
         ds['bottomDepth'] = -bed_elevation
 
+        # dig the bathymetry deeper where the column thickness is too shallow
         min_column_thickness = max(min_column_thickness,
                                    min_levels * min_layer_thickness)
         min_depth = -ssh + min_column_thickness
         ds['bottomDepth'] = np.maximum(ds.bottomDepth, min_depth)
 
         init_vertical_coord(config, ds)
+
+        fill_zlevel_bathymetry_holes(ds)
+
+        # this time, raise the ssh where the column thickness is too shallow
+        # because we don't want to recreate the holes.  Note that this assumes
+        # minLevelCell = 0 for now (i.e. z-star or Haney number vertical
+        # coordinate).
+
+        min_ssh = -ds.bottomDepth + min_column_thickness
+        ds['ssh'] = np.maximum(ds.ssh, min_ssh)
 
         write_netcdf(ds, 'initial_state.nc')
 
