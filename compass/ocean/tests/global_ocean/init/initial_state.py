@@ -98,6 +98,8 @@ class InitialState(Step):
 
         self._add_initial_state(ds)
 
+        self._add_coriolis(ds)
+
         write_netcdf(ds, 'initial_state.nc')
 
         add_mesh_and_init_metadata(self.outputs, config,
@@ -172,6 +174,26 @@ class InitialState(Step):
         # interpolate T and S to zMid
         for var in ['temperature', 'salinity']:
             ds_var = xr.open_dataset(f'{var}_depth.nc')
+            ds_var['nCells'] = ('nCells', np.arange(ds_var.sizes['nCells']))
             da = ds_var[var]
-            da = da.interp(depth=zmid)
+            # depths are positive, whereas zMid values are negative
+            da = da.interp(depth=-zmid)
             ds[var] = da
+
+        ds = ds.drop_vars(['nCells'])
+
+        normalVelocity = xr.zeros_like(ds.xEdge)
+        normalVelocity = normalVelocity.broadcast_like(ds.refBottomDepth)
+        normalVelocity = normalVelocity.transpose('nEdges', 'nVertLevels')
+        ds['normalVelocity'] = normalVelocity.expand_dims(dim='Time', axis=0)
+
+    @staticmethod
+    def _add_coriolis(ds):
+        """ Add T and S to a data set containing mesh and ver. coord. """
+
+        sday = constants['SHR_CONST_SDAY']
+        # SHR_CONST_OMEGA is not correct as of mpas_tools v0.20.0
+        omega = 2. * np.pi / sday
+
+        for geom in ['Cell', 'Edge', 'Vertex']:
+            ds[f'f{geom}'] = 2. * omega * np.sin(ds[f'lat{geom}'])
