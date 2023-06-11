@@ -6,10 +6,10 @@ from mpas_tools.cime.constants import constants
 from mpas_tools.io import write_netcdf
 
 from compass.ocean.iceshelf import compute_land_ice_pressure_and_draft
-# from compass.ocean.plot import plot_initial_state, plot_vertical_grid
-# from compass.ocean.tests.global_ocean.metadata import (
-#     add_mesh_and_init_metadata,
-# )
+from compass.ocean.plot import plot_initial_state
+from compass.ocean.tests.global_ocean.metadata import (
+    add_mesh_and_init_metadata,
+)
 from compass.ocean.vertical import init_vertical_coord
 from compass.ocean.vertical.fill import fill_zlevel_bathymetry_holes
 from compass.step import Step
@@ -55,7 +55,11 @@ class InitialState(Step):
         self.add_input_file(filename='topography.nc',
                             work_dir_target=target)
 
-        for prefix in ['wind_stress', 'temperature', 'salinity']:
+        self.add_input_file(
+            filename='wind_stress.nc',
+            target='../remap_init/wind_stress_remapped.nc')
+
+        for prefix in ['temperature', 'salinity']:
             self.add_input_file(
                 filename=f'{prefix}_depth.nc',
                 target=f'../remap_init/{prefix}_remapped.nc')
@@ -86,18 +90,34 @@ class InitialState(Step):
         Run this step of the testcase
         """
         config = self.config
+        ds_mesh = xr.open_dataset('mesh.nc')
+
+        ds = ds_mesh.copy()
+
+        self._add_vertical_coordinate(ds)
+
+        self._add_initial_state(ds)
+
+        write_netcdf(ds, 'initial_state.nc')
+
+        add_mesh_and_init_metadata(self.outputs, config,
+                                   init_filename='initial_state.nc')
+
+        plot_initial_state(input_file_name='initial_state.nc',
+                           output_file_name='initial_state.png')
+
+    def _add_vertical_coordinate(self, ds):
+        """ Add a vertical coordinate to a data set containing the mesh """
+
+        config = self.config
         section = config['global_ocean_init']
         min_land_ice_fraction = section.getfloat('min_land_ice_fraction')
         min_column_thickness = section.getfloat('min_column_thickness')
         min_layer_thickness = section.getfloat('min_layer_thickness')
         min_levels = section.getint('minimum_levels')
 
-        ds_mesh = xr.open_dataset('mesh.nc')
-
         ds_topo = xr.open_dataset('topography.nc')
         bed_elevation = ds_topo.bed_elevation
-
-        ds = ds_mesh.copy()
 
         if self.mesh.with_ice_shelf_cavities:
             ssh = ds_topo.landIceDraftObserved
@@ -144,12 +164,14 @@ class InitialState(Step):
         min_ssh = -ds.bottomDepth + min_column_thickness
         ds['ssh'] = np.maximum(ds.ssh, min_ssh)
 
-        write_netcdf(ds, 'initial_state.nc')
+    @staticmethod
+    def _add_initial_state(ds):
+        """ Add T and S to a data set containing mesh and ver. coord. """
 
-        # for prefix in ['temperature', 'salinity']:
-
-        # add_mesh_and_init_metadata(self.outputs, config,
-        #                            init_filename='initial_state.nc')
-
-        # plot_initial_state(input_file_name='initial_state.nc',
-        #                    output_file_name='initial_state.png')
+        zmid = ds.zMid
+        # interpolate T and S to zMid
+        for var in ['temperature', 'salinity']:
+            ds_var = xr.open_dataset(f'{var}_depth.nc')
+            da = ds_var[var]
+            da = da.interp(depth=zmid)
+            ds[var] = da
