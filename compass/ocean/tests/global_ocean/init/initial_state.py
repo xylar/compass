@@ -188,7 +188,7 @@ class InitialState(Step):
             da = da.interp(depth=-zmid)
             ds[var] = da
 
-        ds = ds.drop_vars(['nCells'])
+        ds = ds.drop_vars(['nCells', 'depth'])
 
         normalVelocity = xr.zeros_like(ds.xEdge)
         normalVelocity = normalVelocity.broadcast_like(ds.refBottomDepth)
