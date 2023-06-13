@@ -95,11 +95,11 @@ class InitialState(Step):
 
         ds = ds_mesh.copy()
 
-        self._add_vertical_coordinate(ds)
+        ds = self._add_vertical_coordinate(ds)
 
-        self._add_initial_state(ds)
+        ds = self._add_initial_state(ds)
 
-        self._add_coriolis(ds)
+        ds = self._add_coriolis(ds)
 
         haney_edge, haney_cell = compute_haney_number(
             ds, ds.layerThickness, ds.ssh)
@@ -173,6 +173,7 @@ class InitialState(Step):
 
         min_ssh = -ds.bottomDepth + min_column_thickness
         ds['ssh'] = np.maximum(ds.ssh, min_ssh)
+        return ds
 
     @staticmethod
     def _add_initial_state(ds):
@@ -194,6 +195,7 @@ class InitialState(Step):
         normalVelocity = normalVelocity.broadcast_like(ds.refBottomDepth)
         normalVelocity = normalVelocity.transpose('nEdges', 'nVertLevels')
         ds['normalVelocity'] = normalVelocity.expand_dims(dim='Time', axis=0)
+        return ds
 
     @staticmethod
     def _add_coriolis(ds):
@@ -205,6 +207,7 @@ class InitialState(Step):
 
         for geom in ['Cell', 'Edge', 'Vertex']:
             ds[f'f{geom}'] = 2. * omega * np.sin(ds[f'lat{geom}'])
+        return ds
 
     def _compute_forcing(self, ds):
         config = self.config
