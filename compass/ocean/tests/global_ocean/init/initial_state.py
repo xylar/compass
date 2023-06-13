@@ -5,6 +5,7 @@ import xarray as xr
 from mpas_tools.cime.constants import constants
 from mpas_tools.io import write_netcdf
 
+from compass.ocean.haney import compute_haney_number
 from compass.ocean.iceshelf import compute_land_ice_pressure_and_draft
 from compass.ocean.plot import plot_initial_state
 from compass.ocean.tests.global_ocean.metadata import (
@@ -99,6 +100,11 @@ class InitialState(Step):
         self._add_initial_state(ds)
 
         self._add_coriolis(ds)
+
+        haney_edge, haney_cell = compute_haney_number(
+            ds, ds.layerThickness, ds.ssh)
+        ds['rx1Cell'] = haney_cell
+        ds['rx1Edge'] = haney_edge
 
         write_netcdf(ds, 'initial_state.nc')
 
