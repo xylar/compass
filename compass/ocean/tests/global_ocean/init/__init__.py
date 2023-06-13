@@ -58,9 +58,9 @@ class Init(TestCase):
                 test_case=self, mesh=mesh,
                 initial_condition=initial_condition))
 
-#        if mesh.with_ice_shelf_cavities:
-#            self.add_step(
-#                SshAdjustment(test_case=self))
+        if mesh.with_ice_shelf_cavities:
+            self.add_step(
+                SshAdjustment(test_case=self))
 
     def configure(self, config=None):
         """
