@@ -102,6 +102,8 @@ class InitialState(Step):
 
         write_netcdf(ds, 'initial_state.nc')
 
+        self._compute_forcing(ds)
+
         add_mesh_and_init_metadata(self.outputs, config,
                                    init_filename='initial_state.nc')
 
@@ -197,3 +199,27 @@ class InitialState(Step):
 
         for geom in ['Cell', 'Edge', 'Vertex']:
             ds[f'f{geom}'] = 2. * omega * np.sin(ds[f'lat{geom}'])
+
+    def _compute_forcing(self, ds):
+        config = self.config
+        section = config['global_ocean_init']
+        piston_velocity = section.getfloat('piston_velocity')
+        interior_restore_rate = section.getfloat('interior_restore_rate')
+        ds_forcing = xr.open_dataset('wind_stress.nc')
+        ds_forcing['temperatureSurfaceRestoringValue'] = \
+            ds['temperature'].isel(nVertLevels=0)
+        ds_forcing['salinitySurfaceRestoringValue'] = \
+            ds['salinity'].isel(nVertLevels=0)
+        ds_forcing['temperaturePistonVelocity'] = \
+            piston_velocity * xr.ones_like(
+                ds_forcing.temperatureSurfaceRestoringValue)
+        ds_forcing['salinityPistonVelocity'] = \
+            ds_forcing.temperaturePistonVelocity
+        ds_forcing['temperatureInteriorRestoringRate'] = \
+            interior_restore_rate * xr.ones_like(ds.zMid)
+        ds_forcing['salinityInteriorRestoringRate'] = \
+            ds_forcing.temperatureInteriorRestoringRate
+        ds_forcing['temperatureInteriorRestoringValue'] = ds['temperature']
+        ds_forcing['salinityInteriorRestoringValue'] = ds['salinity']
+
+        write_netcdf(ds_forcing, 'init_mode_forcing_data.nc')
