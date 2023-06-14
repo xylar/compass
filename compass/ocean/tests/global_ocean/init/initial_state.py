@@ -106,6 +106,9 @@ class InitialState(Step):
         ds['rx1Cell'] = haney_cell
         ds['rx1Edge'] = haney_edge
 
+        # we probably don't want ot use this cell mask
+        ds = ds.drop_vars(['cellMask'])
+
         write_netcdf(ds, 'initial_state.nc')
 
         self._compute_forcing(ds)
@@ -164,12 +167,15 @@ class InitialState(Step):
 
         init_vertical_coord(config, ds)
 
+        # now, make sure we have the minimum number of levels.  Note that this
+        # assumes minLevelCell = 0 for now (i.e. z-star vertical coordinate).
+        ds['maxLevelCell'] = np.maximum(ds.maxLevelCell, min_levels)
+
         fill_zlevel_bathymetry_holes(ds)
 
         # this time, raise the ssh where the column thickness is too shallow
         # because we don't want to recreate the holes.  Note that this assumes
-        # minLevelCell = 0 for now (i.e. z-star or Haney number vertical
-        # coordinate).
+        # minLevelCell = 0 for now (i.e. z-star vertical coordinate).
 
         min_ssh = -ds.bottomDepth + min_column_thickness
         ds['ssh'] = np.maximum(ds.ssh, min_ssh)
