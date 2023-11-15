@@ -106,7 +106,8 @@ class Mesh(TestCase):
         self.add_step(base_mesh_step)
 
         remap_step = RemapTopography(test_case=self,
-                                     base_mesh_step=base_mesh_step,
+                                     mesh_step=base_mesh_step,
+                                     mesh_filename='base_mesh.nc',
                                      mesh_name=mesh_name)
         self.add_step(remap_step)
 

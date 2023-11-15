@@ -14,15 +14,18 @@ class RemapTopography(Step):
 
     Attributes
     ----------
-    base_mesh_step : compass.mesh.spherical.SphericalBaseStep
-        The base mesh step containing input files to this step
+    mesh_step : compass.Step
+        The mesh step containing the mesh to remap to
+
+    mesh_filename : str
+        The filename within ``mesh_step`` that contains the mesh
 
     mesh_name : str
         The name of the MPAS mesh to include in the mapping file
     """
 
-    def __init__(self, test_case, base_mesh_step, name='remap_topography',
-                 subdir=None, mesh_name='MPAS_mesh'):
+    def __init__(self, test_case, mesh_step, mesh_filename='base_mesh.nc',
+                 name='remap_topography', subdir=None, mesh_name='MPAS_mesh'):
         """
         Create a new step
 
@@ -31,8 +34,11 @@ class RemapTopography(Step):
         test_case : compass.ocean.tests.global_ocean.mesh.Mesh
             The test case this step belongs to
 
-        base_mesh_step : compass.mesh.spherical.SphericalBaseStep
-            The base mesh step containing input files to this step
+        mesh_step : compass.Step
+            The mesh step containing the mesh to remap to
+
+        mesh_filename : str, optional
+            The filename within ``mesh_step`` that contains the mesh
 
         name : str, optional
             the name of the step
@@ -45,7 +51,8 @@ class RemapTopography(Step):
         """
         super().__init__(test_case, name=name, subdir=subdir,
                          ntasks=None, min_tasks=None)
-        self.base_mesh_step = base_mesh_step
+        self.mesh_step = mesh_step
+        self.mesh_filename = mesh_filename
         self.mesh_name = mesh_name
 
         self.add_output_file(filename='topography_remapped.nc')
@@ -62,11 +69,8 @@ class RemapTopography(Step):
             target=topo_filename,
             database='bathymetry_database')
 
-        base_path = self.base_mesh_step.path
-        base_filename = self.base_mesh_step.config.get(
-            'spherical_mesh', 'mpas_mesh_filename')
-        target = os.path.join(base_path, base_filename)
-        self.add_input_file(filename='base_mesh.nc', work_dir_target=target)
+        target = os.path.join(self.mesh_step.path, self.mesh_filename)
+        self.add_input_file(filename='mesh.nc', work_dir_target=target)
 
         config = self.config
         self.ntasks = config.getint('remap_topography', 'ntasks')
@@ -108,7 +112,7 @@ class RemapTopography(Step):
         in_mesh_name = in_descriptor.meshName
 
         out_mesh_name = self.mesh_name
-        out_descriptor = MpasCellMeshDescriptor(fileName='base_mesh.nc',
+        out_descriptor = MpasCellMeshDescriptor(fileName='mesh.nc',
                                                 meshName=self.mesh_name)
 
         mapping_file_name = \
