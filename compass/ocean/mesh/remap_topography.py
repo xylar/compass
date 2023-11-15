@@ -22,10 +22,14 @@ class RemapTopography(Step):
 
     mesh_name : str
         The name of the MPAS mesh to include in the mapping file
+
+    smooth : bool
+        Whether to smooth the topography
     """
 
     def __init__(self, test_case, mesh_step, mesh_filename='base_mesh.nc',
-                 name='remap_topography', subdir=None, mesh_name='MPAS_mesh'):
+                 name='remap_topography', subdir=None, mesh_name='MPAS_mesh',
+                 smooth=False):
         """
         Create a new step
 
@@ -48,12 +52,16 @@ class RemapTopography(Step):
 
         mesh_name : str, optional
             The name of the MPAS mesh to include in the mapping file
+
+        smooth : bool, optional
+            Whether to smooth the topography
         """
         super().__init__(test_case, name=name, subdir=subdir,
                          ntasks=None, min_tasks=None)
         self.mesh_step = mesh_step
         self.mesh_filename = mesh_filename
         self.mesh_name = mesh_name
+        self.smooth = smooth
 
         self.add_output_file(filename='topography_remapped.nc')
 
@@ -119,9 +127,18 @@ class RemapTopography(Step):
             f'map_{in_mesh_name}_to_{out_mesh_name}_{method}.nc'
         remapper = Remapper(in_descriptor, out_descriptor, mapping_file_name)
 
+        if self.smooth:
+            expand_dist = self.build_expand_dist()
+            expand_factor = self.build_expand_factor()
+        else:
+            expand_dist = None
+            expand_factor = None
+
         remapper.build_mapping_file(method=method, mpiTasks=self.ntasks,
                                     tempdir='.', logger=logger,
-                                    esmf_parallel_exec=parallel_executable)
+                                    esmf_parallel_exec=parallel_executable,
+                                    expandDist=expand_dist,
+                                    expandFactor=expand_factor)
 
         remapper.remap_file(inFileName='topography.nc',
                             outFileName='topography_ncremap.nc',
@@ -150,3 +167,36 @@ class RemapTopography(Step):
             ds_out[var] = xr.where(valid, ds_out[var] / norm, 0.)
 
         write_netcdf(ds_out, 'topography_remapped.nc')
+
+    def build_expand_dist(self):
+        """
+        Get the distance in meters over which to expand MPAS cells if smoothing
+        is performed.  The default behavior is to return the value of the
+        ``expand_dist`` config option but this method can be overridden to
+        provide a value for each cell.
+
+        Returns
+        -------
+        expand_dist : float or numpy.ndarray
+            the distance over which to expand MPAS cells
+        """
+
+        expand_dist = self.config.getfloat('smooth_topography', 'expand_dist')
+        return expand_dist
+
+    def build_expand_factor(self):
+        """
+        Get the factor by which to expand MPAS cells if smoothing is
+        performed.  The default behavior is to return the value of the
+        ``expand_factor`` config option but this method can be overridden to
+        provide a value for each cell.
+
+        Returns
+        -------
+        expand_factor : float or numpy.ndarray
+            the factor by which to expand MPAS cells
+        """
+
+        expand_factor = self.config.getfloat('smooth_topography',
+                                             'expand_factor')
+        return expand_factor
