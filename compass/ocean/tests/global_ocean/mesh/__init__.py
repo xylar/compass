@@ -76,6 +76,7 @@ class Mesh(TestCase):
 
         name = 'base_mesh'
         subdir = None
+        smooth = False
         if mesh_name in ['Icos240', 'IcoswISC240']:
             base_mesh_step = IcosahedralMeshStep(
                 self, name=name, subdir=subdir, cell_width=240)
@@ -90,6 +91,7 @@ class Mesh(TestCase):
                 self, name=name, subdir=subdir)
         elif mesh_name in ['EC30to60', 'ECwISC30to60']:
             base_mesh_step = EC30to60BaseMesh(self, name=name, subdir=subdir)
+            smooth = True
         elif mesh_name in ['ARRM10to60', 'ARRMwISC10to60']:
             base_mesh_step = ARRM10to60BaseMesh(self, name=name, subdir=subdir)
         elif mesh_name in ['RRS6to18', 'RRSwISC6to18']:
@@ -108,13 +110,24 @@ class Mesh(TestCase):
         remap_step = RemapTopography(test_case=self,
                                      mesh_step=base_mesh_step,
                                      mesh_filename='base_mesh.nc',
-                                     mesh_name=mesh_name)
+                                     mesh_name=mesh_name,
+                                     smooth=False)
         self.add_step(remap_step)
 
-        self.add_step(CullMeshStep(
+        cull_mesh_step = CullMeshStep(
             test_case=self, base_mesh_step=base_mesh_step,
             with_ice_shelf_cavities=self.with_ice_shelf_cavities,
-            remap_topography=remap_step))
+            remap_topography=remap_step)
+        self.add_step(cull_mesh_step)
+
+        if smooth:
+            smooth_step = RemapTopography(test_case=self,
+                                          name='smooth_topography',
+                                          mesh_step=cull_mesh_step,
+                                          mesh_filename='culled_mesh.nc',
+                                          mesh_name=mesh_name,
+                                          smooth=True)
+            self.add_step(smooth_step)
 
     def configure(self, config=None):
         """

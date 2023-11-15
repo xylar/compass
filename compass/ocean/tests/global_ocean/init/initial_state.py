@@ -77,10 +77,14 @@ class InitialState(Step):
         self.add_namelist_options(options, mode='init')
         self.add_streams_file(package, 'streams.topo', mode='init')
 
-        cull_step = self.mesh.steps['cull_mesh']
-        target = os.path.join(cull_step.path, 'topography_culled.nc')
-        self.add_input_file(filename='topography.nc',
-                            work_dir_target=target)
+        if 'smooth_topography' in self.mesh.steps:
+            smooth_step = self.mesh.steps['smooth_topography']
+            target = os.path.join(smooth_step.path, 'topography_remapped.nc')
+        else:
+            cull_mesh_path = self.mesh.get_cull_mesh_path()
+            target = os.path.join(cull_mesh_path, 'topography_culled.nc')
+
+        self.add_input_file(filename='topography.nc', work_dir_target=target)
 
         self.add_input_file(
             filename='wind_stress.nc',
