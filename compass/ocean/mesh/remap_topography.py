@@ -123,8 +123,13 @@ class RemapTopography(Step):
         out_descriptor = MpasCellMeshDescriptor(fileName='mesh.nc',
                                                 meshName=self.mesh_name)
 
+        if self.smooth:
+            smooth_suffix = '_smoothed'
+        else:
+            smooth_suffix = ''
+
         mapping_file_name = \
-            f'map_{in_mesh_name}_to_{out_mesh_name}_{method}.nc'
+            f'map_{in_mesh_name}_to_{out_mesh_name}_{method}{smooth_suffix}.nc'
         remapper = Remapper(in_descriptor, out_descriptor, mapping_file_name)
 
         if self.smooth:
