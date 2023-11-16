@@ -5,7 +5,10 @@ from compass.mesh.spherical import (
 from compass.ocean.mesh.cull import CullMeshStep
 from compass.ocean.mesh.remap_topography import RemapTopography
 from compass.ocean.tests.global_ocean.mesh.arrm10to60 import ARRM10to60BaseMesh
-from compass.ocean.tests.global_ocean.mesh.ec30to60 import EC30to60BaseMesh
+from compass.ocean.tests.global_ocean.mesh.ec30to60 import (
+    EC30to60BaseMesh,
+    EC30to60SmoothTopo,
+)
 from compass.ocean.tests.global_ocean.mesh.kuroshio import KuroshioBaseMesh
 from compass.ocean.tests.global_ocean.mesh.qu import (
     IcosMeshFromConfigStep,
@@ -76,7 +79,6 @@ class Mesh(TestCase):
 
         name = 'base_mesh'
         subdir = None
-        smooth = False
         if mesh_name in ['Icos240', 'IcoswISC240']:
             base_mesh_step = IcosahedralMeshStep(
                 self, name=name, subdir=subdir, cell_width=240)
@@ -91,7 +93,6 @@ class Mesh(TestCase):
                 self, name=name, subdir=subdir)
         elif mesh_name in ['EC30to60', 'ECwISC30to60']:
             base_mesh_step = EC30to60BaseMesh(self, name=name, subdir=subdir)
-            smooth = True
         elif mesh_name in ['ARRM10to60', 'ARRMwISC10to60']:
             base_mesh_step = ARRM10to60BaseMesh(self, name=name, subdir=subdir)
         elif mesh_name in ['RRS6to18', 'RRSwISC6to18']:
@@ -120,13 +121,10 @@ class Mesh(TestCase):
             remap_topography=remap_step)
         self.add_step(cull_mesh_step)
 
-        if smooth:
-            smooth_step = RemapTopography(test_case=self,
-                                          name='smooth_topography',
-                                          mesh_step=cull_mesh_step,
-                                          mesh_filename='culled_mesh.nc',
-                                          mesh_name=mesh_name,
-                                          smooth=True)
+        if mesh_name in ['EC30to60', 'ECwISC30to60']:
+            smooth_step = EC30to60SmoothTopo(
+                test_case=self, culled_mesh_step=cull_mesh_step,
+                mesh_name=mesh_name)
             self.add_step(smooth_step)
 
     def configure(self, config=None):
