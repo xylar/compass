@@ -207,14 +207,15 @@ def _make_mapping_file(mesh_name, out_grid_name, mesh_filename, out_descriptor,
     parallel_executable = config.get('parallel', 'parallel_executable')
 
     in_descriptor = MpasCellMeshDescriptor(mesh_filename, mesh_name)
+    in_descriptor.format = 'NETCDF3_64BIT'
 
     mapping_file_name = f'map_{mesh_name}_to_{out_grid_name}_bilinear.nc'
 
     remapper = Remapper(in_descriptor, out_descriptor, mapping_file_name)
 
-    remapper.build_mapping_file(method='bilinear', mpiTasks=ntasks,
-                                tempdir='.', logger=logger,
-                                esmf_parallel_exec=parallel_executable)
+    remapper.moab_build_map(method='bilinear', mpi_tasks=ntasks,
+                            tempdir='.', logger=logger,
+                            parallel_executable=parallel_executable)
 
     # now the same on vertices (e.g. for streamfunctions)
     in_descriptor = MpasVertexMeshDescriptor(mesh_filename, mesh_name)
@@ -223,6 +224,6 @@ def _make_mapping_file(mesh_name, out_grid_name, mesh_filename, out_descriptor,
 
     remapper = Remapper(in_descriptor, out_descriptor, mapping_file_name)
 
-    remapper.build_mapping_file(method='bilinear', mpiTasks=ntasks,
-                                tempdir='.', logger=logger,
-                                esmf_parallel_exec=parallel_executable)
+    remapper.moab_build_map(method='bilinear', mpi_tasks=ntasks,
+                            tempdir='.', logger=logger,
+                            parallel_exec=parallel_executable)

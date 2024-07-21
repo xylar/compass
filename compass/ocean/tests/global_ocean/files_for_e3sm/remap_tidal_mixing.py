@@ -143,9 +143,9 @@ def remap_tidal(in_filename, mesh_filename, mesh_name, land_ice_mask_filename,
     logger.info(f'Creating the mapping file {mapping_filename}...')
     remapper = Remapper(src_descriptor, dst_descriptor, mapping_filename)
 
-    remapper.build_mapping_file(method=method, mpiTasks=mpi_tasks,
-                                tempdir=mapping_directory, logger=logger,
-                                esmf_parallel_exec=parallel_executable)
+    remapper.moab_build_map(method=method, mpi_tasks=mpi_tasks,
+                            tempdir=mapping_directory, logger=logger,
+                            parallel_exec=parallel_executable)
     logger.info('done.')
 
     field = 'velocityTidalRMS'

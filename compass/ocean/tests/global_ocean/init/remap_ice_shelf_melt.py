@@ -183,10 +183,9 @@ def remap_paolo(in_filename, base_mesh_filename, culled_mesh_filename,
     logger.info(f'Creating the mapping file {mapping_filename}...')
     remapper = Remapper(in_descriptor, out_descriptor, mapping_filename)
 
-    remapper.build_mapping_file(method=method, mpiTasks=mpi_tasks,
-                                tempdir=mapping_directory, logger=logger,
-                                esmf_parallel_exec=parallel_executable,
-                                include_logs=True)
+    remapper.moab_build_map(method=method, mpi_tasks=mpi_tasks,
+                            tempdir=mapping_directory, logger=logger,
+                            parallel_exec=parallel_executable)
     logger.info('done.')
 
     dx = np.abs(in_descriptor.xCorner[1:] - in_descriptor.xCorner[:-1])
@@ -407,9 +406,9 @@ def remap_adusumilli(in_filename, base_mesh_filename, culled_mesh_filename,
     logger.info(f'Creating the mapping file {mapping_filename}...')
     remapper = Remapper(in_descriptor, out_descriptor, mapping_filename)
 
-    remapper.build_mapping_file(method=method, mpiTasks=mpi_tasks,
-                                tempdir=mapping_directory, logger=logger,
-                                esmf_parallel_exec=parallel_executable)
+    remapper.moab_build_map(method=method, mpi_tasks=mpi_tasks,
+                            tempdir=mapping_directory, logger=logger,
+                            parallel_exec=parallel_executable)
     logger.info('done.')
 
     logger.info('Remapping...')

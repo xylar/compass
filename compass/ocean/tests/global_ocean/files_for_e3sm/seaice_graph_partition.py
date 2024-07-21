@@ -159,8 +159,8 @@ def _make_mapping_file(in_mesh_filename, in_mesh_name, out_mesh_filename,
 
     remapper = Remapper(in_descriptor, out_descriptor, mapping_file_name)
 
-    remapper.build_mapping_file(method=method, mpiTasks=ntasks,
-                                tempdir='.', logger=logger,
-                                esmf_parallel_exec=parallel_executable)
+    remapper.moab_build_map(method=method, mpi_tasks=ntasks,
+                            tempdir='.', logger=logger,
+                            parallel_exec=parallel_executable)
 
     return mapping_file_name
