@@ -249,8 +249,9 @@ class Combine(Step):
             'map_BedMachineAntarctica_500m_to_GEBCO_0.0125deg_bilinear.nc'
 
         remapper = Remapper(in_descriptor, out_descriptor, mapping_filename)
-        remapper.build_mapping_file(method='bilinear', mpiTasks=self.ntasks,
-                                    esmf_parallel_exec='srun', tempdir='.')
+        remapper.moab_build_map(method='bilinear', mpi_tasks=self.ntasks,
+                                parallel_exec='srun', tempdir='.',
+                                logger=logger)
         bedmachine = xr.open_dataset(in_filename)
         bedmachine_on_gebco_low = remapper.remap(bedmachine)
 

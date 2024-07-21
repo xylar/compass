@@ -82,9 +82,9 @@ class RemapTopography(Step):
             f'map_{in_mesh_name}_to_{out_mesh_name}_{method}.nc'
         remapper = Remapper(in_descriptor, out_descriptor, mapping_file_name)
 
-        remapper.build_mapping_file(method=method, mpiTasks=self.ntasks,
-                                    tempdir='.', logger=logger,
-                                    esmf_parallel_exec=parallel_executable)
+        remapper.moab_build_map(method=method, mpi_tasks=self.ntasks,
+                                tempdir='.', logger=logger,
+                                parallel_exec=parallel_executable)
 
         remapper.remap_file(inFileName='topography.nc',
                             outFileName='topography_remapped.nc',
