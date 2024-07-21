@@ -179,10 +179,10 @@ class ExtractRegion(Step):
 
             parallel_executable = config.get('parallel',
                                              'parallel_executable')
-            remapper.build_mapping_file(method='neareststod',
-                                        mpiTasks=self.ntasks,
-                                        tempdir=self.work_dir, logger=logger,
-                                        esmf_parallel_exec=parallel_executable)  # noqa
+            remapper.esmf_build_map(method='neareststod',
+                                    mpi_tasks=self.ntasks,
+                                    tempdir=self.work_dir, logger=logger,
+                                    parallel_exec=parallel_executable)
             logger.info('done.')
 
             logger.info('Remapping mesh file...')
