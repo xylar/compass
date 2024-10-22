@@ -476,6 +476,10 @@ The mesh has 12-km resolution around Antarctica and 30-km resolution elsewhere.
 The mesh includes the :ref:`global_ocean_ice_shelf_cavities` around Antarctica
 in the ocean domain.
 
+A version of the SOwISC12to30 mesh also exist with topography that comes
+from a 4-20 km MALI initial condition instead of from GEBCO and BedMachine
+Antarctica.
+
 .. image:: images/sowisc12to30.png
    :width: 500 px
    :align: center
