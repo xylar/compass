@@ -1,0 +1,81 @@
+parameter_groups:
+  currents:
+    parameters: [UOGRD, VOGRD]
+    level: DBSL:5
+    grid: 0.5x0.5_ocn
+    product: 1-hour Average
+  humidity:
+    parameters: [SPF H]
+    level: HTGL:2
+    grid: full
+    product: Forecast
+  ice:
+    parameters: [ICEC]
+    level: SFC:0
+    grid: full
+    product: Forecast
+  precipitation:
+    parameters: [PRATE]
+    level: SFC:0
+    grid: full
+    product: Average
+  pressure_surf:
+    parameters: [PRES]
+    level: SFC:0
+    grid: full
+    product: Forecast
+  pressure_msl:
+    parameters: [PRMSL]
+    level: MSL:0
+    grid: 0.5x0.5_atm
+    product: Forecast
+  runoff:
+    parameters: [WATR]
+    level: SFC:0
+    grid: full
+    product: Accumulation
+  ssh:
+    parameters: [SSHG]
+    level: SFC:0
+    grid: 0.5x0.5_ocn
+    product: 1-hour Average
+  temperature:
+    parameters: [TMP]
+    level: HTGL:2
+    grid: full
+    product: Forecast
+  wind:
+    parameters: [U GRD, V GRD]
+    level: HTGL:10
+    grid: full
+    product: Forecast
+
+datasets:
+  CFSR:
+    6-hourly: ds093.0
+    hourly: ds093.1
+    monthly: ds093.2
+  CFSv2:
+    6-hourly: ds094.0
+    hourly: ds094.1
+    monthly: ds094.2
+
+grids:
+  T62:
+    - latLon
+    - 192:94:88.542N:0E:88.542S:358.125E:1.875:1.904
+  T382:
+    - gaussLatLon
+    - 1152:576:89.761N:0E:89.761S:359.688E:0.312:288
+  T574:
+    - gaussLatLon
+    - 1760:880:89.844N:0E:89.844S:359.795E:0.205:440
+  0.5x0.5_atm:
+    - latLon
+    - 720:361:90N:0E:90S:359.5E:0.5:0.5
+  0.5x0.5_ocn:
+    - latLon
+    - 720:360:89.75N:0E:89.75S:359.5E:0.5:0.5
+  2.5x2.5:
+    - latLon
+    - 144:73:90N:0E:90S:357.5E:2.5:2.5
