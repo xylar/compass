@@ -5,9 +5,9 @@ Using `download_gdex`
 [NCAR Geoscience Data Exchange (GDEX)](https://gdex.ucar.edu/) data repository,
 where for example, NCEP gridded forecasts and reanalysis are archived.
 
-This module currently only defines requests for the NCEP Climate Forecast System
-Reanalysis (CFSR) and Climate Forecast System Version 2 (CFSv2). Additional
-definitions should be added to `gdex_codes.yaml`.
+This module currently only defines requests for the NCEP Climate Forecast
+System Reanalysis (CFSR) and Climate Forecast System Version 2 (CFSv2).
+Additional definitions should be added to `gdex_codes.yaml`.
 
 A GDEX token is required for data downloads. A token can be retrieved at
 https://gdex.ucar.edu/accounts/profile/ (account required).
@@ -22,12 +22,12 @@ Instructions
       ln -s /path/to/download_gdex.py ./
       ln -s /path/to/gdex_codes.yaml ./
       ```
-    
+
    2. Initiate the request by executing `download_gdex.py`. The options are:
       ```
       python download_gdex.py --help
 
-      usage: download_gdex.py [-h] [-f FREQUENCY] [-b REGION_BOX] parameter_group model start_date end_date
+      usage: download_gdex.py [-h] [-f FREQUENCY] [-b REGION_BOX] parameter_group model start_date end_date  # noqa: E501
 
       Download CFS data from gdex.ucar.edu
 

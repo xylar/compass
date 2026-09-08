@@ -1,7 +1,8 @@
 import argparse
 import os
-import requests
 import time
+
+import requests
 import yaml
 from dateutil.parser import parse
 
@@ -87,7 +88,7 @@ def download_cfs_data(parameter_group, model, start_date, end_date,
     products = []
     for hour in range(1, 7):
         if product_type == '1-hour Average':
-            product = f'{product_type} (initial+{hour-1} to initial+{hour})'
+            product = f'{product_type} (initial+{hour - 1} to initial+{hour})'
         else:
             product = f'{hour}-hour {product_type}'
             if product_type != 'Forecast':
@@ -99,18 +100,18 @@ def download_cfs_data(parameter_group, model, start_date, end_date,
 
     # Build request dict
     control = {
-        'dataset' : dataset,
-        'date'    : '/to/'.join(date_range),
-        'param'   : '/'.join(parameter_codes['parameters']),
-        'level'   : parameter_codes['level'],
-        'product' : '/'.join(products),
-        'oformat' : 'netCDF',
-        'nlat'    : region_box[3],
-        'slat'    : region_box[2],
-        'wlon'    : region_box[0],
-        'elon'    : region_box[1],
+        'dataset': dataset,
+        'date': '/to/'.join(date_range),
+        'param': '/'.join(parameter_codes['parameters']),
+        'level': parameter_codes['level'],
+        'product': '/'.join(products),
+        'oformat': 'netCDF',
+        'nlat': region_box[3],
+        'slat': region_box[2],
+        'wlon': region_box[0],
+        'elon': region_box[1],
         'gridproj': grid_codes[0],
-        'griddef' : grid_codes[1],
+        'griddef': grid_codes[1],
     }
 
     submit_request(control)
