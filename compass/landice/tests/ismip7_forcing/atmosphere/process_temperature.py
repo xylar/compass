@@ -6,10 +6,8 @@ import xarray as xr
 from mpas_tools.io import write_netcdf
 from mpas_tools.logging import check_call
 
-from compass.landice.tests.ismip7_forcing.create_mapfile import (
-    build_mapping_file,
-)
-from compass.landice.tests.ismip7_forcing.ice_sheet_params import get_params
+from compass.landice.ismip7.ice_sheet_params import get_params
+from compass.landice.ismip7.mapping import build_mapping_file
 from compass.step import Step
 
 

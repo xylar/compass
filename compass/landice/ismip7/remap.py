@@ -1,5 +1,5 @@
 """
-Shared helpers for remapping ISMIP7 fracture forcing data to the MALI mesh.
+Shared helpers for remapping ISMIP7 forcing data onto the MALI mesh.
 """
 import os
 
@@ -9,7 +9,8 @@ from mpas_tools.io import write_netcdf
 from scipy.ndimage import distance_transform_edt
 
 
-def extrapolate_source(input_file, output_file, varnames, logger):
+def extrapolate_source(input_file, output_file, varnames, logger,
+                       decode_times=True):
     """
     Extrapolate fill/missing values on the source polar stereographic grid
     using nearest-neighbor via ``distance_transform_edt``. This must be done
@@ -29,6 +30,11 @@ def extrapolate_source(input_file, output_file, varnames, logger):
 
     logger : logging.Logger
         Logger for status messages
+
+    decode_times : bool, optional
+        Whether to let xarray decode the time coordinate.  The fracture
+        forcing files use ``units="year"`` (integer years), which is not
+        CF-compliant, so those callers must pass ``False``.
     """
     if isinstance(varnames, str):
         varnames = [varnames]
@@ -36,7 +42,8 @@ def extrapolate_source(input_file, output_file, varnames, logger):
     logger.info(f"    Extrapolating fill values on source grid: "
                 f"{os.path.basename(input_file)}")
 
-    ds = xr.open_dataset(input_file, decode_times=False)
+    ds = xr.open_dataset(input_file, engine="netcdf4",
+                         decode_times=decode_times)
 
     for varname in varnames:
         data = ds[varname]
